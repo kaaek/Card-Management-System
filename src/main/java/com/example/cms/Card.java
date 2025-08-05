@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.validator.constraints.UUID;
 
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Table(name = "cards")
@@ -23,4 +24,8 @@ public class Card {
     @Convert(converter = CryptoConverter.class)
     @Column(name = "card_number", updatable = false, nullable = false, unique = true)
     private String cardNumber;
+
+    @ManyToMany(mappedBy = "cards")
+    private Set<Account> accounts;
+
 }

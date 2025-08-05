@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.validator.constraints.UUID;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 @Table(name = "accounts")
@@ -23,4 +24,13 @@ public class Account {
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", updatable = false, nullable = false)
     private Currency currency;
+
+    @ManyToMany
+    @JoinTable(
+            name = "account_card",
+            joinColumns = @JoinColumn(name="account_id"),
+            inverseJoinColumns = @JoinColumn(name = "card_id")
+    )
+    private Set<Card> cards;
+
 }
