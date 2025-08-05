@@ -19,4 +19,8 @@ public class Account {
 
     @Column(name = "balance", updatable = true, nullable = true) // debatable whether nullable, will see about this.
     private BigDecimal balance;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency", updatable = false, nullable = false)
+    private Currency currency;
 }
