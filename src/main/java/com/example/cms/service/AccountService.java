@@ -1,8 +1,8 @@
 package com.example.cms.service;
 
-import com.example.cms.dto.AccountRequestDTO;
-import com.example.cms.dto.AccountResponseDTO;
-import com.example.cms.dto.AccountUpdateDTO;
+import com.example.cms.dto.account.AccountRequestDTO;
+import com.example.cms.dto.account.AccountResponseDTO;
+import com.example.cms.dto.account.AccountUpdateDTO;
 import com.example.cms.model.Account;
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;

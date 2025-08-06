@@ -1,8 +1,8 @@
 package com.example.cms.api;
 
-import com.example.cms.dto.AccountRequestDTO;
-import com.example.cms.dto.AccountResponseDTO;
-import com.example.cms.dto.AccountUpdateDTO;
+import com.example.cms.dto.account.AccountRequestDTO;
+import com.example.cms.dto.account.AccountResponseDTO;
+import com.example.cms.dto.account.AccountUpdateDTO;
 import com.example.cms.model.enums.Status;
 import com.example.cms.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;

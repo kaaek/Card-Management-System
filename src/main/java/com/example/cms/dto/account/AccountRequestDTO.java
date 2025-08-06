@@ -1,6 +1,5 @@
-package com.example.cms.dto;
+package com.example.cms.dto.account;
 
-import com.example.cms.model.enums.Currency;
 import lombok.Data;
 
 import java.math.BigDecimal;

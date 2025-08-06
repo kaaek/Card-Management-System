@@ -1,4 +1,4 @@
-package com.example.cms.dto;
+package com.example.cms.dto.account;
 
 import com.example.cms.model.enums.Status;
 import lombok.Data;

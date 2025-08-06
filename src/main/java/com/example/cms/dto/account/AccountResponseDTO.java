@@ -1,4 +1,4 @@
-package com.example.cms.dto;
+package com.example.cms.dto.account;
 
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
@@ -13,7 +13,7 @@ public class AccountResponseDTO {
     private Status status;
     private BigDecimal balance;
     private Currency currency;
-    // Add cards?
+    // TO-DO: Add cards?
 
     public AccountResponseDTO(UUID id, Status status, BigDecimal balance, Currency currency){
         this.id = id;
