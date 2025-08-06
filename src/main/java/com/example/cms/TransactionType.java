@@ -1,6 +1,6 @@
 package com.example.cms;
 
-public enum transactionType{
+public enum TransactionType {
     C,
     D
 }

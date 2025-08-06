@@ -3,7 +3,7 @@ package com.example.cms;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -21,7 +21,7 @@ public class Card {
     @Getter @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "card_status", nullable = false)
-    private CardStatus status;
+    private Status status;
 
     @Getter @Setter
     @Column (name = "date", nullable = false)
@@ -38,14 +38,31 @@ public class Card {
 
     // No arg constructor JPA uses when retrieving info from the db
     public Card(){
-        this.accounts = new HashSet<>();
+        this.accounts = new HashSet<>(); // As far as I know, this is optional.
+        // TO-DO: add debug message
     }
 
-    // Parameterized constructor:
-    public Card(CardStatus status, Date expiry, String cardNumber){
+    // Parameterized constructor
+    public Card(Status status, Date expiry, String cardNumber){
         this.status = status;
         this.expiry = expiry;
         this.cardNumber = cardNumber;
+        this.accounts = new HashSet<>(); // As far as I know, this is optional.
+        // TO-DO: add debug message
     }
 
+    public void activate(){
+        setStatus(Status.ACTIVE);
+        System.out.println("Card with ID = "+getId()+" status was set to "+ Status.ACTIVE);
+    }
+
+    public void deactivate(){
+        setStatus(Status.INACTIVE);
+        System.out.println("Card with ID = "+getId()+" status was set to "+ Status.INACTIVE);
+    }
+
+    // public boolean isActive(): return status == Status.ACTIVE
+    // public String getMaskedCardNumber(): return masked version of cardNumber (e.g., **** **** **** 1234
+    // public String getCardDetails(): formatted string of card info (status, expiry, masked number)
+    // (Optional): addAccount(Account account) and removeAccount(Account account) for managing the many-to-many relationship.
 }

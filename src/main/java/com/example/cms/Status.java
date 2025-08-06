@@ -1,6 +1,6 @@
 package com.example.cms;
 
-public enum CardStatus {
+public enum Status {
     ACTIVE,
     INACTIVE
 }

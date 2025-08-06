@@ -3,9 +3,10 @@ package com.example.cms;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -20,7 +21,7 @@ public class Account {
     @Getter @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "card_status", nullable = false)
-    private CardStatus status;
+    private Status status;
 
     @Getter @Setter
     @Column(name = "balance", nullable = false)
@@ -38,5 +39,20 @@ public class Account {
             inverseJoinColumns = @JoinColumn(name = "card_id")
     )
     private Set<Card> cards;
+
+    // No arg constructor JPA uses when retrieving info from the db
+    public Account(){
+        this.cards = new HashSet<>(); // As far as I know, this is optional.
+        // TO-DO: add debug message
+    }
+
+    // Parameterized constructor
+    public Account(Status status, BigDecimal balance, Currency currency){
+        this.status = status;
+        this.balance = balance;
+        this.currency = currency;
+        this.cards = new HashSet<>();
+    }
+
 
 }

@@ -2,7 +2,7 @@ package com.example.cms;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 
 import java.math.BigDecimal;
 import java.security.Timestamp;
@@ -25,5 +25,5 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", updatable = false, nullable = false)
-    private transactionType transactionType;
+    private TransactionType transactionType;
 }
