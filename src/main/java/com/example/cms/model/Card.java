@@ -34,33 +34,33 @@ public class Card {
     @Column(name = "card_number", updatable = false, nullable = false, unique = true)
     private String cardNumber;
 
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AccountCard> accounts = new HashSet<>();
+
+    /* DEPRECATED:
     @Getter @Setter
     @ManyToMany(mappedBy = "cards")
     private Set<Account> accounts;
+     */
 
-    // No arg constructor JPA uses when retrieving info from the db
-    public Card(){
-        this.accounts = new HashSet<>(); // As far as I know, this is optional.
-        // TO-DO: add debug message
-    }
+    public Card(){} // TO-DO: include debug messages.
 
-    // Parameterized constructor
     public Card(Status status, Date expiry, String cardNumber, Set<Account> accounts){
         this.status = status;
         this.expiry = expiry;
         this.cardNumber = cardNumber;
-        this.accounts = accounts;
+        // this.accounts = accounts;
         // TO-DO: add debug message
     }
 
     public void activate(){
         setStatus(Status.ACTIVE);
-        System.out.println("Card with ID = "+getId()+" status was set to "+ Status.ACTIVE);
+        // System.out.println("Card with ID = "+getId()+" status was set to "+ Status.ACTIVE);
     }
 
     public void deactivate(){
         setStatus(Status.INACTIVE);
-        System.out.println("Card with ID = "+getId()+" status was set to "+ Status.INACTIVE);
+        // System.out.println("Card with ID = "+getId()+" status was set to "+ Status.INACTIVE);
     }
 
     // public boolean isActive(): return status == Status.ACTIVE
