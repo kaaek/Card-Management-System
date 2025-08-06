@@ -1,5 +1,7 @@
-package com.example.cms;
+package com.example.cms.model;
 
+import com.example.cms.model.enums.Currency;
+import com.example.cms.model.enums.Status;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

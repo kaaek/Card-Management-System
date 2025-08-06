@@ -1,5 +1,6 @@
-package com.example.cms;
+package com.example.cms.model;
 
+import com.example.cms.model.enums.TransactionType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.util.UUID;
