@@ -61,6 +61,7 @@ public class AccountService {
             Account account = optionalAccount.get();
             account.setStatus(accountUpdateDTO.getStatus());
             account.setBalance(accountUpdateDTO.getBalance());
+            accountRepository.save(account); // when the primary key (id here) exists, the repo updates the fields.
             return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
         } else {
             throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
@@ -72,6 +73,7 @@ public class AccountService {
         if (optionalAccount.isPresent()) {
             Account account = optionalAccount.get();
             account.setBalance(newBalance);
+            accountRepository.save(account);
             return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
         } else {
             throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
@@ -83,6 +85,7 @@ public class AccountService {
         if (optionalAccount.isPresent()) {
             Account account = optionalAccount.get();
             account.setStatus(newStatus);
+            accountRepository.save(account);
             return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
         } else {
             throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired

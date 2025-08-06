@@ -34,6 +34,7 @@ public class Account {
     @Column(name = "currency", updatable = false, nullable = false)
     private Currency currency;
 
+    /*
     @ManyToMany
     @JoinTable(
             name = "account_card",
@@ -41,15 +42,12 @@ public class Account {
             inverseJoinColumns = @JoinColumn(name = "card_id")
     )
     private Set<Card> cards;
+    */
 
-    // No arg constructor the service uses when requesting an account.
     public Account(){
-        this.cards = new HashSet<>(); // As far as I know, this is optional.
-        // Auto-generates UUID and that's it.
-        // TO-DO: add debug message
+        this.cards = new HashSet<>(); // Optional ???
     }
 
-    // Parameterized constructor
     public Account(Status status, BigDecimal balance, Currency currency){
         this.status = status;
         this.balance = balance;
