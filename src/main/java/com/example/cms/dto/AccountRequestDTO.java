@@ -7,6 +7,6 @@ import java.math.BigDecimal;
 
 @Data
 public class AccountRequestDTO {
-    private Currency currency;
+    private String currency;
     private BigDecimal balance;
 }

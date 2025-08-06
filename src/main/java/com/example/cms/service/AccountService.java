@@ -4,6 +4,7 @@ import com.example.cms.dto.AccountRequestDTO;
 import com.example.cms.dto.AccountResponseDTO;
 import com.example.cms.dto.AccountUpdateDTO;
 import com.example.cms.model.Account;
+import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
 import com.example.cms.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,7 +28,13 @@ public class AccountService {
     }
 
     public AccountResponseDTO createAccount(AccountRequestDTO accountRequestDTO){
-        Account account = new Account(Status.ACTIVE, accountRequestDTO.getBalance(), accountRequestDTO.getCurrency());
+        Currency currency;
+        try {
+            currency = Currency.valueOf(accountRequestDTO.getCurrency().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid currency. Supported values: USD, LBP.");
+        }
+        Account account = new Account(Status.ACTIVE, accountRequestDTO.getBalance(), currency);
         accountRepository.save(account);
         return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
     }
