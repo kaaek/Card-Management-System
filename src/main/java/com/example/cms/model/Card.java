@@ -45,11 +45,11 @@ public class Card {
     }
 
     // Parameterized constructor
-    public Card(Status status, Date expiry, String cardNumber){
+    public Card(Status status, Date expiry, String cardNumber, Set<Account> accounts){
         this.status = status;
         this.expiry = expiry;
         this.cardNumber = cardNumber;
-        this.accounts = new HashSet<>(); // As far as I know, this is optional.
+        this.accounts = accounts;
         // TO-DO: add debug message
     }
 

@@ -27,7 +27,7 @@ public class AccountController {
         return accountService.getAllAccounts();
     }
 
-    // Get API to fetch all accounts
+    // Get API to fetch specific account
     @GetMapping("/{id}")
     public AccountResponseDTO getAccountById(@PathVariable UUID id){
         return accountService.getAccountById(id);
@@ -56,6 +56,7 @@ public class AccountController {
         return accountService.updateStatus(id, newStatus);
     }
 
+    // Delete
     @DeleteMapping("/{id}")
     public void deleteAccount (@PathVariable UUID id){
         accountService.deleteAccount(id);
