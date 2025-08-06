@@ -35,6 +35,7 @@ public class Account {
     private Currency currency;
 
     // Manually establishing a one-to-many relationship with the account_card join table:
+    @Getter
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AccountCard> cards = new HashSet<>();
 

@@ -29,7 +29,7 @@ public class CardController {
     public CardResponseDTO getCardById(@PathVariable UUID id){return cardService.getCardById(id);}
 
     // POST API
-    /*
+    /* DEPRECATED:
     @PostMapping("/new")
     public CardResponseDTO createCard(@RequestParam String accountIds) {
         Set<UUID> ids = Arrays.stream(accountIds.split(","))

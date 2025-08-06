@@ -4,11 +4,12 @@ import com.example.cms.dto.card.CardRequestDTO;
 import com.example.cms.dto.card.CardResponseDTO;
 import com.example.cms.dto.card.CardUpdateDTO;
 import com.example.cms.model.Account;
+import com.example.cms.model.AccountCard;
 import com.example.cms.model.Card;
 import com.example.cms.model.enums.Status;
+import com.example.cms.repository.AccountCardRepository;
 import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -17,29 +18,37 @@ import java.util.stream.Collectors;
 @Service
 public class CardService {
 
-    @Autowired
     private final CardRepository cardRepository;
-
-    @Autowired
     private final AccountRepository accountRepository;
+    private final AccountCardRepository accountCardRepository;
 
-    public CardService(CardRepository cardRepository, AccountRepository accountRepository) {
+    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
+        this.accountCardRepository = accountCardRepository;
     }
 
     public CardResponseDTO createCard(CardRequestDTO cardRequestDTO) {
-        Date expiry = getExpiryDate();
-        String newCardNumber = generate16DigitNumber();
-
-        Set<UUID> requestedIds = cardRequestDTO.getAccountIds();
-        List<Account> accounts = accountRepository.findAllById(requestedIds);
-
-        if (accounts.size() != requestedIds.size()) {
-            throw new IllegalArgumentException("One or more account IDs are invalid.");
+        // Fetch accounts
+        List<Account> accounts = accountRepository.findAllById(cardRequestDTO.getAccountIds());
+        if (accounts.size() != cardRequestDTO.getAccountIds().size()) {
+            throw new RuntimeException("One or more Account IDs are invalid");
         }
+        // Create card
+        Card card = new Card(Status.ACTIVE, newExpiryDate(), generate16DigitNumber());
+        card = cardRepository.save(card);
 
-        Card card = new Card(Status.ACTIVE, expiry, newCardNumber, new HashSet<>(accounts));
+        // Link to accounts via join table
+        for (Account account : accounts){
+            AccountCard link = new AccountCard();
+            link.setAccount(account);
+            link.setCard(card);
+
+            // bidirectional persistence:
+            card.getAccounts().add(link);
+            account.getCards().add(link);
+            accountCardRepository.save(link);
+        }
 
         return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
     }
@@ -61,7 +70,7 @@ public class CardService {
         return cardNumber;
     }
 
-    public Date getExpiryDate(){
+    public Date newExpiryDate(){
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         cal.add(Calendar.YEAR, 3);
@@ -70,8 +79,9 @@ public class CardService {
 
     public Set<UUID> mapAccountsToIds(Card card){
         return card.getAccounts().stream()
-                .map(Account::getId)
+                .map(accountCard -> accountCard.getAccount().getId())
                 .collect(Collectors.toSet());
+        }
     }
 
     public Set<Account> mapIdsToAccounts(Set<UUID> ids) {

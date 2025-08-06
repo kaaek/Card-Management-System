@@ -34,6 +34,7 @@ public class Card {
     @Column(name = "card_number", updatable = false, nullable = false, unique = true)
     private String cardNumber;
 
+    @Getter
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AccountCard> accounts = new HashSet<>();
 
@@ -45,7 +46,7 @@ public class Card {
 
     public Card(){} // TO-DO: include debug messages.
 
-    public Card(Status status, Date expiry, String cardNumber, Set<Account> accounts){
+    public Card(Status status, Date expiry, String cardNumber){
         this.status = status;
         this.expiry = expiry;
         this.cardNumber = cardNumber;
