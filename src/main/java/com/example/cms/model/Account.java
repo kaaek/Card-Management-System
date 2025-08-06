@@ -42,9 +42,10 @@ public class Account {
     )
     private Set<Card> cards;
 
-    // No arg constructor JPA uses when retrieving info from the db
+    // No arg constructor the service uses when requesting an account.
     public Account(){
         this.cards = new HashSet<>(); // As far as I know, this is optional.
+        // Auto-generates UUID and that's it.
         // TO-DO: add debug message
     }
 
