@@ -1,6 +1,7 @@
 package com.example.cms.dto.transaction;
 
 import com.example.cms.model.Card;
+import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class TransactionResponseDTO {
     private BigDecimal amount;
     private Timestamp date;
     private TransactionType type;
+    private Currency currency;
     private UUID cardId;
 
 }

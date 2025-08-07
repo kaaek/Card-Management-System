@@ -9,6 +9,7 @@ import java.util.UUID;
 public class TransactionRequestDTO {
     private BigDecimal amount;
     private String type;
+    private String currency;
     private UUID cardId;
 
 }

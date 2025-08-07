@@ -1,5 +1,6 @@
 package com.example.cms.model;
 
+import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -32,14 +33,18 @@ public class Transaction {
     @Column(name = "type", updatable = false, nullable = false)
     private TransactionType type;
 
+    @Column(name = "currency", nullable = false)
+    private Currency currency
+
     @ManyToOne
     @JoinColumn(name = "card_id", referencedColumnName = "cardId")
     private Card card;
 
-    public Transaction(BigDecimal transactionAmount, Timestamp transactionDate, TransactionType transactionType, Card card){
+    public Transaction(BigDecimal transactionAmount, Timestamp transactionDate, TransactionType transactionType, Currency currency, Card card){
         this.amount = transactionAmount;
         this.date = transactionDate;
         this.type = transactionType;
+        this.currency = currency;
         this.card = card;
     }
 

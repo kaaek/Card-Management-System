@@ -2,6 +2,7 @@ package com.example.cms.api;
 
 import com.example.cms.dto.transaction.TransactionRequestDTO;
 import com.example.cms.dto.transaction.TransactionResponseDTO;
+import com.example.cms.dto.transaction.TransactionUpdateDTO;
 import com.example.cms.service.TransactionService;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ public class TransactionController {
 
     @PostMapping("/new")
     public TransactionResponseDTO createTransaction(@RequestBody TransactionRequestDTO transactionRequestDTO){
-        return transactionService.createTransation(transactionRequestDTO);
+        return transactionService.createTransaction(transactionRequestDTO);
     }
 
     @PutMapping("/{id}")

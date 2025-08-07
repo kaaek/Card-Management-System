@@ -58,6 +58,17 @@ public class Card {
         // System.out.println("Card with ID = "+getId()+" status was set to "+ Status.INACTIVE);
     }
 
+    public void addTransaction(Transaction transaction){
+        transactions.add(transaction);
+        transaction.setCard(this);
+    }
+
+    public void removeTransaction(Transaction transaction){
+        transactions.remove(transaction);
+        transaction.setCard(null);
+    }
+
+
     // public boolean isActive(): return status == Status.ACTIVE
     // public String getMaskedCardNumber(): return masked version of cardNumber (e.g., **** **** **** 1234
     // public String getCardDetails(): formatted string of card info (status, expiry, masked number)
