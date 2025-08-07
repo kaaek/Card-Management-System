@@ -34,7 +34,7 @@ public class Transaction {
     private TransactionType type;
 
     @Column(name = "currency", nullable = false)
-    private Currency currency
+    private Currency currency;
 
     @ManyToOne
     @JoinColumn(name = "card_id", referencedColumnName = "cardId")
