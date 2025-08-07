@@ -81,7 +81,6 @@ public class CardService {
                 .collect(Collectors.toSet());
     }
 
-
     public Set<Account> mapIdsToAccounts(Set<UUID> accountIds) {
         List<Account> accounts = accountRepository.findAllById(accountIds);
         Set<UUID> foundIds = accounts.stream()
@@ -128,17 +127,27 @@ public class CardService {
             card.setStatus(status);
             card.setExpiry(expiry);
 
-            // Flush old associated links
-            accountCardRepository.deleteAll(card.getAccountCards());
+//            // Flush old associated links
+//            accountCardRepository.deleteAll(card.getAccountCards());
+//
+//            Set<Account> accounts = mapIdsToAccounts(accountIds);
+//            Set<AccountCard> links = new HashSet<>();
+//            for (Account account : accounts) {
+//                AccountCard link = new AccountCard(account, card);
+//                links.add(accountCardRepository.save(link));
+//            }
+//
+//            card.setAccountCards(links);
+//            Card savedCard = cardRepository.save(card);
 
+            // Clear and repopulate the collection
+            card.getAccountCards().clear(); // assumes orphanRemoval = true
             Set<Account> accounts = mapIdsToAccounts(accountIds);
-            Set<AccountCard> links = new HashSet<>();
             for (Account account : accounts) {
                 AccountCard link = new AccountCard(account, card);
-                links.add(accountCardRepository.save(link));
+                card.getAccountCards().add(link);
             }
 
-            card.setAccountCards(links);
             Card savedCard = cardRepository.save(card);
 
             return new CardResponseDTO(

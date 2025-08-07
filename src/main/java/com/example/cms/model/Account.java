@@ -18,28 +18,24 @@ import java.util.Set;
 @NoArgsConstructor
 @Table(name = "accounts")
 public class Account {
-    @Getter
+
     @Id
     @GeneratedValue
     @Column(name = "id", updatable = false, nullable = false, unique = true)
     private UUID id;
 
-    @Getter @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "card_status", nullable = false)
     private Status status;
 
-    @Getter @Setter
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;
 
-    @Getter @Setter
     @Enumerated(EnumType.STRING)
     @Column(name = "currency", updatable = false, nullable = false)
     private Currency currency;
 
     // Manually establishing a one-to-many relationship with the account_card join table:
-    @Getter
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AccountCard> accountCards = new HashSet<>();
 

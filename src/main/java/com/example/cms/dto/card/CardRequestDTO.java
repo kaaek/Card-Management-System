@@ -8,5 +8,4 @@ import java.util.UUID;
 @Data
 public class CardRequestDTO {
     private Set<UUID> accountIds;
-
 }

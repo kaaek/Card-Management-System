@@ -59,7 +59,13 @@ public class AccountService {
         Optional<Account> optionalAccount = accountRepository.findById(id);
         if (optionalAccount.isPresent()) {
             Account account = optionalAccount.get();
-            account.setStatus(accountUpdateDTO.getStatus());
+            Status newStatus;
+            try {
+                newStatus = Status.valueOf(accountUpdateDTO.getStatus().toString().strip().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid Status. Supported values: ACTIVE, INACTIVE.");
+            }
+            account.setStatus(newStatus);
             account.setBalance(accountUpdateDTO.getBalance());
             accountRepository.save(account); // when the primary key (id here) exists, the repo updates the fields.
             return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
@@ -68,29 +74,35 @@ public class AccountService {
         }
     }
 
-    public AccountResponseDTO updateBalance(UUID id, BigDecimal newBalance){
-        Optional<Account> optionalAccount = accountRepository.findById(id);
-        if (optionalAccount.isPresent()) {
-            Account account = optionalAccount.get();
-            account.setBalance(newBalance);
-            accountRepository.save(account);
-            return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
-        } else {
-            throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
-        }
-    }
-
-    public AccountResponseDTO updateStatus(UUID id, Status newStatus){
-        Optional<Account> optionalAccount = accountRepository.findById(id);
-        if (optionalAccount.isPresent()) {
-            Account account = optionalAccount.get();
-            account.setStatus(newStatus);
-            accountRepository.save(account);
-            return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
-        } else {
-            throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
-        }
-    }
+//    public AccountResponseDTO updateBalance(UUID id, BigDecimal newBalance){
+//        Optional<Account> optionalAccount = accountRepository.findById(id);
+//        if (optionalAccount.isPresent()) {
+//            Account account = optionalAccount.get();
+//            account.setBalance(newBalance);
+//            accountRepository.save(account);
+//            return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
+//        } else {
+//            throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
+//        }
+//    }
+//
+//    public AccountResponseDTO updateStatus(UUID id, String newStatus){
+//        Optional<Account> optionalAccount = accountRepository.findById(id);
+//        if (optionalAccount.isPresent()) {
+//            Account account = optionalAccount.get();
+//            if(newStatus.equalsIgnoreCase("active")) {
+//                account.setStatus(Status.ACTIVE);
+//            } else if (newStatus.equalsIgnoreCase("inactive")) {
+//                account.setStatus(Status.INACTIVE);
+//            } else {
+//                throw new RuntimeException("Invalid status given");
+//            }
+//            accountRepository.save(account);
+//            return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
+//        } else {
+//            throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
+//        }
+//    }
 
     public void deleteAccount(UUID id){
         accountRepository.deleteById(id);

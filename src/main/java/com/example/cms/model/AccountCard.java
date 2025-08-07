@@ -3,16 +3,20 @@ package com.example.cms.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "account_card")
 public class AccountCard {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
+    @Column(name = "id", updatable = false, nullable = false, unique = true)
     private UUID id; // pk
 
     @ManyToOne
@@ -20,7 +24,7 @@ public class AccountCard {
     private Account account;
 
     @ManyToOne
-    @JoinColumn(name = "card_id") // Foreign key to Card entity
+    @JoinColumn(name = "card_id", nullable = false) // Foreign key to Card entity
     private Card card;
 
     public AccountCard(Account account, Card card) {
