@@ -38,6 +38,9 @@ public class Card {
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AccountCard> accountCards = new HashSet<>();
 
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Transaction> transactions = new HashSet<>();
+
     public Card(Status status, Date expiry, String cardNumber){
         this.status = status;
         this.expiry = expiry;

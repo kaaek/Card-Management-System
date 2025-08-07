@@ -2,6 +2,8 @@ package com.example.cms.model;
 
 import com.example.cms.model.enums.TransactionType;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import java.util.UUID;
 
@@ -10,6 +12,8 @@ import java.security.Timestamp;
 
 
 @Entity
+@Data
+@NoArgsConstructor
 @Table(name = "transactions")
 public class Transaction {
     @Id
@@ -18,13 +22,24 @@ public class Transaction {
     private UUID id;
 
     @Column(name = "amount", updatable = false, nullable = false)
-    private BigDecimal transactionAmount;
+    private BigDecimal amount;
 
     @CreationTimestamp
     @Column(name = "date", updatable = false, nullable = false)
-    private Timestamp transactionDate;
+    private Timestamp date;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", updatable = false, nullable = false)
-    private TransactionType transactionType;
+    private TransactionType type;
+
+    @ManyToOne
+    @JoinColumn(name = "card_id", referencedColumnName = "cardId")
+    private Card card;
+
+    public Transaction(BigDecimal transactionAmount, Timestamp transactionDate, TransactionType transactionType){
+        this.amount = transactionAmount;
+        this.date = transactionDate;
+        this.type = transactionType;
+    }
+
 }
