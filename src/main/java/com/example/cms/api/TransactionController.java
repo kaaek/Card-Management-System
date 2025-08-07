@@ -1,7 +1,12 @@
 package com.example.cms.api;
 
+import com.example.cms.dto.transaction.TransactionRequestDTO;
+import com.example.cms.dto.transaction.TransactionResponseDTO;
 import com.example.cms.service.TransactionService;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/transactions")

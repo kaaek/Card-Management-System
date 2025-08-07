@@ -8,7 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.util.UUID;
 
 import java.math.BigDecimal;
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
 
 @Entity
@@ -36,10 +36,11 @@ public class Transaction {
     @JoinColumn(name = "card_id", referencedColumnName = "cardId")
     private Card card;
 
-    public Transaction(BigDecimal transactionAmount, Timestamp transactionDate, TransactionType transactionType){
+    public Transaction(BigDecimal transactionAmount, Timestamp transactionDate, TransactionType transactionType, Card card){
         this.amount = transactionAmount;
         this.date = transactionDate;
         this.type = transactionType;
+        this.card = card;
     }
 
 }
