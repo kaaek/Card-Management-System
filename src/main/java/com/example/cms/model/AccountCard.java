@@ -1,9 +1,8 @@
 package com.example.cms.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.UUID;
 
@@ -17,12 +16,15 @@ public class AccountCard {
     private UUID id; // pk
 
     @ManyToOne
-    @Getter @Setter
     @JoinColumn(name = "account_id", nullable = false) // Foreign key to Account entity
     private Account account;
 
     @ManyToOne
-    @Getter @ Setter
     @JoinColumn(name = "card_id") // Foreign key to Card entity
     private Card card;
+
+    public AccountCard(Account account, Card card) {
+        this.account = account;
+        this.card = card;
+    }
 }

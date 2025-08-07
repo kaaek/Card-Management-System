@@ -39,14 +39,12 @@ public class CardService {
         card = cardRepository.save(card);
 
         // Link to accounts via join table
-        for (Account account : accounts){
-            AccountCard link = new AccountCard();
-            link.setAccount(account);
-            link.setCard(card);
+        for (Account account : accounts) {
+            AccountCard link = new AccountCard(account, card);
 
             // bidirectional persistence:
-            card.getAccounts().add(link);
-            account.getCards().add(link);
+            card.getAccountCards().add(link);
+            account.getAccountCards().add(link);
             accountCardRepository.save(link);
         }
 
@@ -70,22 +68,32 @@ public class CardService {
         return cardNumber;
     }
 
-    public Date newExpiryDate(){
+    public Date newExpiryDate() {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         cal.add(Calendar.YEAR, 3);
         return cal.getTime();
     }
 
-    public Set<UUID> mapAccountsToIds(Card card){
-        return card.getAccounts().stream()
+    public Set<UUID> mapAccountsToIds(Card card) {
+        return card.getAccountCards().stream()
                 .map(accountCard -> accountCard.getAccount().getId())
                 .collect(Collectors.toSet());
-        }
     }
 
-    public Set<Account> mapIdsToAccounts(Set<UUID> ids) {
-        return new HashSet<>(accountRepository.findAllById(ids));
+
+    public Set<Account> mapIdsToAccounts(Set<UUID> accountIds) {
+        List<Account> accounts = accountRepository.findAllById(accountIds);
+        Set<UUID> foundIds = accounts.stream()
+                .map(Account::getId)
+                .collect(Collectors.toSet());
+        // to check consistency:
+        Set<UUID> missingIds = new HashSet<>(accountIds);
+        missingIds.removeAll(foundIds);
+        if(!missingIds.isEmpty()){
+            throw new IllegalArgumentException("Invalid account IDs: " + missingIds);
+        }
+        return new HashSet<>(accounts);
     }
 
 
@@ -107,18 +115,39 @@ public class CardService {
     }
 
     public CardResponseDTO update(UUID id, CardUpdateDTO cardUpdateDTO){
+        // My params
         Status status = cardUpdateDTO.getStatus();
         Date expiry = cardUpdateDTO.getExpiry();
         Set<UUID> accountIds = cardUpdateDTO.getAccountIds();
 
+        // Extract card if exists
         Optional<Card> optionalCard = cardRepository.findById(id);
-        Set<Account> accounts = mapIdsToAccounts(accountIds);
+
         if(optionalCard.isPresent()){
             Card card = optionalCard.get();
             card.setStatus(status);
             card.setExpiry(expiry);
-            card.setAccounts(accounts);
-            return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
+
+            // Flush old associated links
+            accountCardRepository.deleteAll(card.getAccountCards());
+
+            Set<Account> accounts = mapIdsToAccounts(accountIds);
+            Set<AccountCard> links = new HashSet<>();
+            for (Account account : accounts) {
+                AccountCard link = new AccountCard(account, card);
+                links.add(accountCardRepository.save(link));
+            }
+
+            card.setAccountCards(links);
+            Card savedCard = cardRepository.save(card);
+
+            return new CardResponseDTO(
+                    savedCard.getId(),
+                    savedCard.getStatus(),
+                    savedCard.getExpiry(),
+                    savedCard.getCardNumber(),
+                    mapAccountsToIds(savedCard)
+            );
         } else {
             throw new RuntimeException("Card not found");
         }

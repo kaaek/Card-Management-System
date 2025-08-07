@@ -4,6 +4,7 @@ import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.util.UUID;
 
@@ -12,6 +13,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "accounts")
 public class Account {
     @Getter
@@ -37,19 +41,7 @@ public class Account {
     // Manually establishing a one-to-many relationship with the account_card join table:
     @Getter
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<AccountCard> cards = new HashSet<>();
-
-    /* DEPRECATED:
-    @ManyToMany
-    @JoinTable(
-            name = "account_card",
-            joinColumns = @JoinColumn(name="account_id"),
-            inverseJoinColumns = @JoinColumn(name = "card_id")
-    )
-    private Set<Card> cards;
-    */
-
-    public Account(){} // TO-DO: include debug messages.
+    private Set<AccountCard> accountCards = new HashSet<>();
 
     public Account(Status status, BigDecimal balance, Currency currency){
         this.status = status;
