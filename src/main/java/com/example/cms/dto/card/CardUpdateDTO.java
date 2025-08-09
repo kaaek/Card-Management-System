@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 public class CardUpdateDTO {
-    private Status status;
+    private String status;
     private Date expiry;
     private Set<UUID> accountIds;
 }

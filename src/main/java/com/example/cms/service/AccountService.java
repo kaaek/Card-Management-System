@@ -1,8 +1,8 @@
 package com.example.cms.service;
-
 import com.example.cms.dto.account.AccountRequestDTO;
 import com.example.cms.dto.account.AccountResponseDTO;
 import com.example.cms.dto.account.AccountUpdateDTO;
+import com.example.cms.exception.AccountNotFoundException;
 import com.example.cms.model.Account;
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 public class AccountService {
 
-    @Autowired
     private final AccountRepository accountRepository;
 
     public AccountService(AccountRepository accountRepository) {
@@ -27,25 +26,22 @@ public class AccountService {
     }
 
     public AccountResponseDTO createAccount(AccountRequestDTO accountRequestDTO){
-        Currency currency;
-        try {
-            currency = Currency.valueOf(accountRequestDTO.getCurrency().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid currency. Supported values: USD, LBP.");
-        }
+        Currency currency = parseCurrency(accountRequestDTO.getCurrency());
         Account account = new Account(Status.ACTIVE, accountRequestDTO.getBalance(), currency);
         accountRepository.save(account);
         return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
     }
 
     public AccountResponseDTO getAccountById(UUID id) {
-        Optional<Account> optionalAccount = accountRepository.findById(id);
-        if (optionalAccount.isPresent()) {
-            Account account = optionalAccount.get();
-            return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
-        } else {
-            throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
-        }
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with ID: " + id));
+
+        return new AccountResponseDTO(
+                account.getId(),
+                account.getStatus(),
+                account.getBalance(),
+                account.getCurrency()
+        );
     }
 
     public List<AccountResponseDTO> getAllAccounts() {
@@ -56,23 +52,15 @@ public class AccountService {
     }
 
     public AccountResponseDTO update(UUID id, AccountUpdateDTO accountUpdateDTO){
-        Optional<Account> optionalAccount = accountRepository.findById(id);
-        if (optionalAccount.isPresent()) {
-            Account account = optionalAccount.get();
-            Status newStatus;
-            try {
-                newStatus = Status.valueOf(accountUpdateDTO.getStatus().toString().strip().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid Status. Supported values: ACTIVE, INACTIVE.");
-            }
-            account.setStatus(newStatus);
-            account.setBalance(accountUpdateDTO.getBalance());
-            accountRepository.save(account); // when the primary key (id here) exists, the repo updates the fields.
-            return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
-        } else {
-            throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
-        }
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with ID: " + id));
+        account.setStatus(parseStatus(accountUpdateDTO.getStatus()));
+        account.setBalance(accountUpdateDTO.getBalance());
+        account.setCurrency(parseCurrency(accountUpdateDTO.getCurrency()));
+        accountRepository.save(account);
+        return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
     }
+
 
 //    public AccountResponseDTO updateBalance(UUID id, BigDecimal newBalance){
 //        Optional<Account> optionalAccount = accountRepository.findById(id);
@@ -103,9 +91,26 @@ public class AccountService {
 //            throw new RuntimeException("Account not found"); // TO-DO: replace with custom exception if desired
 //        }
 //    }
-
     public void deleteAccount(UUID id){
         accountRepository.deleteById(id);
+    }
+
+    // Helper methods
+
+    public Status parseStatus (String s){
+        try {
+            return Status.valueOf(s.strip().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid Status. Supported values: ACTIVE, INACTIVE.");
+        }
+    }
+
+    public Currency parseCurrency (String s) {
+        try {
+            return Currency.valueOf(s.strip().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid currency. Supported values: USD, LBP.");
+        }
     }
 
 

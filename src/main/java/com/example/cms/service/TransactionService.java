@@ -1,5 +1,4 @@
 package com.example.cms.service;
-
 import com.example.cms.dto.transaction.TransactionRequestDTO;
 import com.example.cms.dto.transaction.TransactionResponseDTO;
 import com.example.cms.dto.transaction.TransactionUpdateDTO;
@@ -14,7 +13,6 @@ import com.example.cms.repository.CardRepository;
 import com.example.cms.repository.TransactionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
@@ -28,7 +26,6 @@ public class TransactionService {
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
 
-    // Injection
     public TransactionService(TransactionRepository transactionRepository, CardRepository cardRepository, AccountRepository accountRepository){
         this.transactionRepository = transactionRepository;
         this.cardRepository = cardRepository;
@@ -39,7 +36,7 @@ public class TransactionService {
         // Fetch cards
         Card card = findCardOrThrow(transactionRequestDTO.getCardId());
 
-        // Prepare params for transaction object
+        // Prepare to create a transaction object, need the parameters amount, date, type, currency, and card id.
         BigDecimal amount = transactionRequestDTO.getAmount();
         Timestamp date = createTimestamp();
         TransactionType type = parseTransactionType(transactionRequestDTO.getType());
@@ -56,7 +53,7 @@ public class TransactionService {
         }
         Account account = matchingAccount.get();
 
-        // Check eligibility (if we can create this transaction or now)
+        // Check eligibility (if we can create this transaction or not)
         if(!(isCardValid(card) && isAccountEligible(account, type, amount))){
             throw new RuntimeException("Transaction denied: invalid card or account not eligible.");
             // Execution stops here
@@ -64,7 +61,7 @@ public class TransactionService {
 
         // Create transaction
         Transaction transaction = new Transaction(amount, date, type, currency, card);
-        // Maintain the reverse side's memory (card):
+        // Maintain the reverse side's memory (card), also persists the change.
         card.addTransaction(transaction);
         // Add or subtract value from account's balance.
         updateBalance(account, transaction);
@@ -102,24 +99,30 @@ public class TransactionService {
         // Extract transaction if exists
         Optional<Transaction> query = transactionRepository.findById(id);
         if(query.isPresent()){
-            // Params
+            // Prepare to create a transaction object, need the parameters amount, type, currency, and card id.
             BigDecimal amount = transactionUpdateDTO.getAmount();
             TransactionType type = parseTransactionType(transactionUpdateDTO.getType());
+            Currency newCurrency = parseCurrency(transactionUpdateDTO.getCurrency());
             UUID cardId = transactionUpdateDTO.getCardId();
+
             Transaction transaction = query.get();
+            // Set new values
             transaction.setAmount(amount);
             transaction.setType(type);
-            Currency newCurrency = parseCurrency(transactionUpdateDTO.getCurrency());
             transaction.setCurrency(newCurrency);
-            // Fetch card.
-            Card newCard = findCardOrThrow(cardId);
-            // Check if the card provided in the update DTO matches the one stored in the db.
+
+            // Updating card
             Card oldCard = transaction.getCard();
+            // For the new card: first, fetch.
+            Card newCard = findCardOrThrow(cardId);
+            // Check if the new and old cards are equal.
             if (oldCard != null && !oldCard.equals(newCard)) { // card is different.
                 oldCard.removeTransaction(transaction);
                 newCard.addTransaction(transaction);
             }
             transaction.setCard(newCard);
+
+            // Persist
             transactionRepository.save(transaction);
             return new TransactionResponseDTO(transaction.getId(), transaction.getAmount(), transaction.getDate(), transaction.getType(), transaction.getCurrency(), transaction.getCard().getId());
         } else {
@@ -127,14 +130,16 @@ public class TransactionService {
         }
     }
 
-
     // TO-DO: add per-field update method.
+
+    // Helper methods:
 
     public void deleteTransaction(UUID id){
         transactionRepository.deleteById(id);
     }
+
     public void updateBalance(Account account, Transaction transaction){
-        // Assuming the card & account check out:
+        // Assuming the card & account check out (since otherwise a transaction object would not have been instantiated)
         if (transaction.getType().equals(TransactionType.C)){ // Add money to account
             account.setBalance(account.getBalance().add(transaction.getAmount()));
         } else if (transaction.getType().equals(TransactionType.D)) { // Take money from account
@@ -160,13 +165,8 @@ public class TransactionService {
             return account.getBalance().compareTo(amount) >= 0;
         }
 
-        if (type.equals(TransactionType.C)) {
-            return true;
-        }
-
-        return false;
+        return type.equals(TransactionType.C);
     }
-
 
     public Timestamp createTimestamp(){
         return new Timestamp(System.currentTimeMillis());

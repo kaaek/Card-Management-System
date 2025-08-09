@@ -1,6 +1,4 @@
 package com.example.cms.dto.transaction;
-
-import com.example.cms.model.Card;
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.TransactionType;
 import lombok.AllArgsConstructor;

@@ -3,6 +3,7 @@ package com.example.cms.service;
 import com.example.cms.dto.card.CardRequestDTO;
 import com.example.cms.dto.card.CardResponseDTO;
 import com.example.cms.dto.card.CardUpdateDTO;
+import com.example.cms.exception.CardNotFoundException;
 import com.example.cms.model.Account;
 import com.example.cms.model.AccountCard;
 import com.example.cms.model.Card;
@@ -51,6 +52,61 @@ public class CardService {
         return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
     }
 
+    public CardResponseDTO getCardById(UUID id){
+        Optional<Card> optionalCard = cardRepository.findById(id);
+        if(optionalCard.isPresent()){
+            Card card = optionalCard.get();
+            return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
+        } else {
+            throw new RuntimeException("Card not found");
+        }
+    }
+
+    public List<CardResponseDTO> getAllCards() {
+        return cardRepository.findAll()
+                .stream()
+                .map(card -> new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card)))
+                .collect(Collectors.toList());
+    }
+
+    public CardResponseDTO update(UUID id, CardUpdateDTO cardUpdateDTO){
+        // Prepare parameters for response dto
+        Status status = parseStatus(cardUpdateDTO.getStatus());
+        Date expiry = cardUpdateDTO.getExpiry();
+        Set<UUID> accountIds = cardUpdateDTO.getAccountIds();
+
+        // Extract card if exists
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new CardNotFoundException("Card not found with ID: "+ id));
+        card.setStatus(status);
+        card.setExpiry(expiry);
+
+        // Clear and repopulate the collection
+        card.getAccountCards().clear(); // assumes orphanRemoval = true
+        Set<Account> accounts = mapIdsToAccounts(accountIds);
+        for (Account account : accounts) {
+            AccountCard link = new AccountCard(account, card);
+            card.getAccountCards().add(link);
+        }
+
+        Card savedCard = cardRepository.save(card);
+
+        return new CardResponseDTO(
+            savedCard.getId(),
+            savedCard.getStatus(),
+            savedCard.getExpiry(),
+            savedCard.getCardNumber(),
+            mapAccountsToIds(savedCard)
+        );
+    }
+
+    // TO-DO: add per-field update method.
+
+    public void deleteCard(UUID id){
+        cardRepository.deleteById(id);
+    }
+
+    // Helper methods
 
     public String generate16DigitNumber() {
         Random random = new Random();
@@ -95,76 +151,11 @@ public class CardService {
         return new HashSet<>(accounts);
     }
 
-
-    public CardResponseDTO getCardById(UUID id){
-        Optional<Card> optionalCard = cardRepository.findById(id);
-        if(optionalCard.isPresent()){
-            Card card = optionalCard.get();
-            return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
-        } else {
-            throw new RuntimeException("Card not found");
+    public Status parseStatus (String s){
+        try{
+            return Status.valueOf(s.strip().toUpperCase());
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Invalid status. Supported values are: ACTIVE, INACTIVE");
         }
-    }
-
-    public List<CardResponseDTO> getAllCards() {
-        return cardRepository.findAll()
-                .stream()
-                .map(card -> new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card)))
-                .collect(Collectors.toList());
-    }
-
-    public CardResponseDTO update(UUID id, CardUpdateDTO cardUpdateDTO){
-        // My params
-        Status status = cardUpdateDTO.getStatus();
-        Date expiry = cardUpdateDTO.getExpiry();
-        Set<UUID> accountIds = cardUpdateDTO.getAccountIds();
-
-        // Extract card if exists
-        Optional<Card> optionalCard = cardRepository.findById(id);
-
-        if(optionalCard.isPresent()){
-            Card card = optionalCard.get();
-            card.setStatus(status);
-            card.setExpiry(expiry);
-
-//            // Flush old associated links
-//            accountCardRepository.deleteAll(card.getAccountCards());
-//
-//            Set<Account> accounts = mapIdsToAccounts(accountIds);
-//            Set<AccountCard> links = new HashSet<>();
-//            for (Account account : accounts) {
-//                AccountCard link = new AccountCard(account, card);
-//                links.add(accountCardRepository.save(link));
-//            }
-//
-//            card.setAccountCards(links);
-//            Card savedCard = cardRepository.save(card);
-
-            // Clear and repopulate the collection
-            card.getAccountCards().clear(); // assumes orphanRemoval = true
-            Set<Account> accounts = mapIdsToAccounts(accountIds);
-            for (Account account : accounts) {
-                AccountCard link = new AccountCard(account, card);
-                card.getAccountCards().add(link);
-            }
-
-            Card savedCard = cardRepository.save(card);
-
-            return new CardResponseDTO(
-                    savedCard.getId(),
-                    savedCard.getStatus(),
-                    savedCard.getExpiry(),
-                    savedCard.getCardNumber(),
-                    mapAccountsToIds(savedCard)
-            );
-        } else {
-            throw new RuntimeException("Card not found");
-        }
-    }
-
-    // TO-DO: add per-field update method.
-
-    public void deleteCard(UUID id){
-        cardRepository.deleteById(id);
     }
 }
