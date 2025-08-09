@@ -38,6 +38,10 @@ public class TransactionService {
 
         // Prepare to create a transaction object, need the parameters amount, date, type, currency, and card id.
         BigDecimal amount = transactionRequestDTO.getAmount();
+        if(amount.compareTo(BigDecimal.valueOf(0)) <= 0){
+            throw new RuntimeException("Transaction amount cannot be zero or negative.");
+        }
+
         Timestamp date = createTimestamp();
         TransactionType type = parseTransactionType(transactionRequestDTO.getType());
         Currency currency = parseCurrency(transactionRequestDTO.getCurrency());
@@ -55,7 +59,7 @@ public class TransactionService {
 
         // Check eligibility (if we can create this transaction or not)
         if(!(isCardValid(card) && isAccountEligible(account, type, amount))){
-            throw new RuntimeException("Transaction denied: invalid card or account not eligible.");
+            throw new RuntimeException("Transaction denied: invalid card or account not eligible (inactive or insufficient balance).");
             // Execution stops here
         }
 
