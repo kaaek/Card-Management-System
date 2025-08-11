@@ -1,14 +1,11 @@
-package com.example.cms.api;
+package com.example.cms.controller;
 
 import com.example.cms.dto.account.AccountRequestDTO;
 import com.example.cms.dto.account.AccountResponseDTO;
 import com.example.cms.dto.account.AccountUpdateDTO;
-import com.example.cms.model.enums.Status;
 import com.example.cms.service.AccountService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 

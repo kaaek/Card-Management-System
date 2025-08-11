@@ -11,6 +11,7 @@ import com.example.cms.model.enums.Status;
 import com.example.cms.repository.AccountCardRepository;
 import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -23,10 +24,13 @@ public class CardService {
     private final AccountRepository accountRepository;
     private final AccountCardRepository accountCardRepository;
 
-    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository) {
+    private final ModelMapper mapper;
+
+    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, ModelMapper mapper) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
         this.accountCardRepository = accountCardRepository;
+        this.mapper = mapper;
     }
 
     public CardResponseDTO createCard(CardRequestDTO cardRequestDTO) {
@@ -48,8 +52,8 @@ public class CardService {
             account.getAccountCards().add(link);
             accountCardRepository.save(link);
         }
-
-        return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
+        return this.mapper.map(card, CardResponseDTO.class);
+//        return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
     }
 
     public CardResponseDTO getCardById(UUID id){

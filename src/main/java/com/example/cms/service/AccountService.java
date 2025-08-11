@@ -7,12 +7,11 @@ import com.example.cms.model.Account;
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
 import com.example.cms.repository.AccountRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import org.modelmapper.ModelMapper;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,28 +19,33 @@ import java.util.stream.Collectors;
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final ModelMapper mapper;
 
     public AccountService(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
+        this.mapper = new ModelMapper();
     }
 
     public AccountResponseDTO createAccount(AccountRequestDTO accountRequestDTO){
-        Currency currency = parseCurrency(accountRequestDTO.getCurrency());
+//        Currency currency = parseCurrency(accountRequestDTO.getCurrency());
+        Currency currency = accountRequestDTO.getCurrency();
         Account account = new Account(Status.ACTIVE, accountRequestDTO.getBalance(), currency);
         accountRepository.save(account);
-        return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
+        return this.mapper.map(account, AccountResponseDTO.class);
+//        return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
     }
 
     public AccountResponseDTO getAccountById(UUID id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found with ID: " + id));
 
-        return new AccountResponseDTO(
-                account.getId(),
-                account.getStatus(),
-                account.getBalance(),
-                account.getCurrency()
-        );
+        return this.mapper.map(account, AccountResponseDTO.class);
+//        return new AccountResponseDTO(
+//                account.getId(),
+//                account.getStatus(),
+//                account.getBalance(),
+//                account.getCurrency()
+//        );
     }
 
     public List<AccountResponseDTO> getAllAccounts() {
@@ -58,7 +62,8 @@ public class AccountService {
         account.setBalance(accountUpdateDTO.getBalance());
         account.setCurrency(parseCurrency(accountUpdateDTO.getCurrency()));
         accountRepository.save(account);
-        return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
+        return this.mapper.map(account, AccountResponseDTO.class);
+//        return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
     }
 
 

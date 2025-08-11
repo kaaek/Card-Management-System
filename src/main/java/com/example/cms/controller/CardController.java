@@ -1,14 +1,12 @@
-package com.example.cms.api;
+package com.example.cms.controller;
 
 import com.example.cms.dto.card.CardRequestDTO;
 import com.example.cms.dto.card.CardResponseDTO;
 import com.example.cms.dto.card.CardUpdateDTO;
 import com.example.cms.service.CardService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/cards")

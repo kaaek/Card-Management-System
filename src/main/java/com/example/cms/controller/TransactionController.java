@@ -1,4 +1,4 @@
-package com.example.cms.api;
+package com.example.cms.controller;
 
 import com.example.cms.dto.transaction.TransactionRequestDTO;
 import com.example.cms.dto.transaction.TransactionResponseDTO;

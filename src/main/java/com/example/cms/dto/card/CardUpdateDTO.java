@@ -1,14 +1,13 @@
 package com.example.cms.dto.card;
-
-import com.example.cms.model.Account;
-import com.example.cms.model.enums.Status;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
 public class CardUpdateDTO {
     private String status;
     private Date expiry;
