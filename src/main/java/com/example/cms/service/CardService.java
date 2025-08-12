@@ -7,6 +7,7 @@ import com.example.cms.model.Account;
 import com.example.cms.model.AccountCard;
 import com.example.cms.model.Card;
 import com.example.cms.model.enums.Status;
+import com.example.cms.repository.AccountCardRepository;
 import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,12 +22,14 @@ public class CardService {
 
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
+    private final AccountCardRepository accountCardRepository;
 
     private final ModelMapper mapper;
 
-    public CardService(CardRepository cardRepository, AccountRepository accountRepository, ModelMapper mapper) {
+    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, ModelMapper mapper) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
+        this.accountCardRepository = accountCardRepository;
         this.mapper = mapper;
     }
 
@@ -41,18 +44,14 @@ public class CardService {
         // Create card
         Card newCard = new Card(Status.ACTIVE, newExpiryDate(), generate16DigitNumber());
 
+        cardRepository.save(newCard);
+
         // Link to accounts via join table
         for (Account account : accounts) {
+            System.out.println("hello");
             AccountCard link = new AccountCard(account, newCard);
-
-//            newCard.getAccountCards().add(link);
-//            account.getAccountCards().add(link);
-//            accountCardRepository.save(link);
-
-            newCard.getAccountCards().add(link);
-            account.getAccountCards().add(link);
+            accountCardRepository.save(link);
         }
-        cardRepository.save(newCard);
         return mapper.map(newCard, CardResponseDTO.class);
     }
 
@@ -72,29 +71,36 @@ public class CardService {
     }
 
     public CardResponseDTO update(UUID id, CardUpdateDTO cardUpdateDTO){
-        // Prepare parameters for response dto
-        Status status = parseStatus(cardUpdateDTO.getStatus());
-        Date expiry = cardUpdateDTO.getExpiry();
 
         // Extract card if exists
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
 
-        card.setStatus(status);
-        card.setExpiry(expiry);
+        card.setStatus(cardUpdateDTO.getStatus());
+        card.setExpiry(cardUpdateDTO.getExpiry());
 
         cardRepository.save(card);
 
         return mapper.map(card, CardResponseDTO.class);
     }
 
-    public void deleteCard(UUID id){
+//    public void deleteCard(UUID id){
+//        Card card = cardRepository.findById(id)
+//                        .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
+//        accountCardRepository.deleteByCard(card);
+//        cardRepository.delete(card);
+//    }
+
+    public void deleteCard(UUID id) {
         Card card = cardRepository.findById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
+                .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: " + id));
+
+        List<AccountCard> accountCards = accountCardRepository.findByCard(card);
+        accountCardRepository.deleteAll(accountCards);
+
         cardRepository.delete(card);
     }
 
-    // Helper methods
 
     public String generate16DigitNumber() {
         Random random = new Random();
@@ -117,13 +123,5 @@ public class CardService {
         cal.setTime(new Date());
         cal.add(Calendar.YEAR, 3);
         return cal.getTime();
-    }
-
-    public Status parseStatus (String s){
-        try{
-            return Status.valueOf(s.strip().toUpperCase());
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Invalid status. Supported values are: ACTIVE, INACTIVE");
-        }
     }
 }

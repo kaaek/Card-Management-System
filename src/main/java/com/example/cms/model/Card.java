@@ -9,8 +9,6 @@ import lombok.Setter;
 import java.util.UUID;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -35,32 +33,9 @@ public class Card {
     @Column(name = "card_number", updatable = false, nullable = false, unique = true)
     private String cardNumber;
 
-    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<AccountCard> accountCards = new HashSet<>();
-
-    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<Transaction> transactions = new HashSet<>();
-
     public Card(Status status, Date expiry, String cardNumber){
         this.status = status;
         this.expiry = expiry;
         this.cardNumber = cardNumber;
-        // TO-DO: add debug message
     }
-
-    public void addTransaction(Transaction transaction){
-        transactions.add(transaction);
-        transaction.setCard(this);
-    }
-
-    public void removeTransaction(Transaction transaction){
-        transactions.remove(transaction);
-        transaction.setCard(null);
-    }
-
-
-    // public boolean isActive(): return status == Status.ACTIVE
-    // public String getMaskedCardNumber(): return masked version of cardNumber (e.g., **** **** **** 1234
-    // public String getCardDetails(): formatted string of card info (status, expiry, masked number)
-    // (Optional): addAccount(Account account) and removeAccount(Account account) for managing the many-to-many relationship.
 }

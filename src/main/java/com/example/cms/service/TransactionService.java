@@ -8,6 +8,7 @@ import com.example.cms.model.Card;
 import com.example.cms.model.Transaction;
 import com.example.cms.model.enums.Status;
 import com.example.cms.model.enums.TransactionType;
+import com.example.cms.repository.AccountCardRepository;
 import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
 import com.example.cms.repository.TransactionRepository;
@@ -23,15 +24,17 @@ import com.example.cms.model.enums.Currency;
 @Service
 public class TransactionService {
 
-    private final TransactionRepository transactionRepository;
-    private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
+    private final CardRepository cardRepository;
+    private final AccountCardRepository accountCardRepository;
+    private final TransactionRepository transactionRepository;
     private final ModelMapper mapper;
 
-    public TransactionService(TransactionRepository transactionRepository, CardRepository cardRepository, AccountRepository accountRepository, ModelMapper mapper){
+    public TransactionService(TransactionRepository transactionRepository, CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, ModelMapper mapper){
         this.transactionRepository = transactionRepository;
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
+        this.accountCardRepository = accountCardRepository;
         this.mapper = mapper;
     }
 
@@ -42,7 +45,7 @@ public class TransactionService {
         // Prepare to create a transaction object, need the parameters amount, date, type, currency, and card id.
         BigDecimal amount = transactionRequestDTO.getAmount();
 
-        // Check if balance is positive.
+        // Check if transaction amount is positive.
         if(amount.compareTo(BigDecimal.valueOf(0)) <= 0){
             throw new IllegalArgumentException("Transaction amount cannot be zero or negative.");
         }
@@ -50,18 +53,6 @@ public class TransactionService {
         Timestamp date = createTimestamp();
         TransactionType type = transactionRequestDTO.getType();
         Currency currency = transactionRequestDTO.getCurrency();
-
-//        // Find the card's account w/ matching currency to check:
-//        Optional<Account> matchingAccount = card.getAccountCards()
-//                .stream()
-//                .map(AccountCard::getAccount)
-//                .filter(acc -> acc.getCurrency().equals(currency))
-//                .findFirst();
-//        if (matchingAccount.isEmpty()) {
-//            throw new RuntimeException("No account with matching currency found.");
-//        }
-//        Account account = matchingAccount.get();
-
         Account account = getAccountFromCard(card, currency);
 
         // Check eligibility (if we can create this transaction or not)
@@ -71,8 +62,6 @@ public class TransactionService {
 
         // Create transaction
         Transaction transaction = new Transaction(amount, date, type, currency, card);
-        // Maintain the reverse side's memory (card), also persists the change.
-        card.addTransaction(transaction);
         // Add or subtract value from account's balance.
         updateBalance(account, transaction);
         // Persist
@@ -108,6 +97,7 @@ public class TransactionService {
 
         // New fields
         BigDecimal newAmount = transactionUpdateDTO.getAmount();
+        Timestamp newDate = transactionUpdateDTO.getDate();
         TransactionType newType = transactionUpdateDTO.getType();
         Currency newCurrency = transactionUpdateDTO.getCurrency();
 
@@ -121,7 +111,7 @@ public class TransactionService {
 
         // Negate old transaction effect
         if(oldType == TransactionType.C) { // was credit, so subtract that amount
-            account.setBalance(account.getBalance().subtract(oldAmount));
+            account.setBalance(account.getBalance().add(BigDecimal.valueOf(-1).multiply(oldAmount)));
         } else if(oldType == TransactionType.D){ // was debit, so add that amount
             account.setBalance(account.getBalance().add(oldAmount));
         }
@@ -132,14 +122,17 @@ public class TransactionService {
         } else if(newType == TransactionType.D){
             account.setBalance(account.getBalance().subtract(newAmount));
         } else {
-            throw new RuntimeException("Transaction type is invalid.");
+            throw new IllegalArgumentException("Transaction type is invalid.");
         }
 
         accountRepository.save(account);
 
+        if(newDate.after(new Timestamp(System.currentTimeMillis()))) {
+            throw new IllegalArgumentException("Transaction cannot be in the future.");
+        }
+        transaction.setDate(newDate);
         transaction.setAmount(newAmount);
         transaction.setType(newType);
-
         transactionRepository.save(transaction);
 
         return mapper.map(transaction, TransactionResponseDTO.class);
@@ -151,7 +144,6 @@ public class TransactionService {
         // Fetch Transaction
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found with ID: " + id));
-        transactionRepository.deleteById(transaction.getId());
         // Old fields
         BigDecimal oldAmount = transaction.getAmount();
         TransactionType oldType = transaction.getType();
@@ -162,16 +154,17 @@ public class TransactionService {
 
         // Negate old transaction effect
         if(oldType == TransactionType.C) { // was credit, so subtract that amount
-            account.setBalance(account.getBalance().subtract(oldAmount));
+            account.setBalance(account.getBalance().add(BigDecimal.valueOf(-1).multiply(oldAmount)));
         } else if(oldType == TransactionType.D){ // was debit, so add that amount
             account.setBalance(account.getBalance().add(oldAmount));
         }
+        transactionRepository.delete(transaction);
         accountRepository.save(account);
     }
 
     public Account getAccountFromCard(Card card, Currency currency) {
         // Find the card's account w/ matching currency to check:
-        Optional<Account> matchingAccount = card.getAccountCards()
+        Optional<Account> matchingAccount = accountCardRepository.findByCard(card)
                 .stream()
                 .map(AccountCard::getAccount)
                 .filter(acc -> acc.getCurrency().equals(currency))
@@ -197,7 +190,6 @@ public class TransactionService {
     public boolean isCardValid(Card card){
         Date now = new Date();
         return card.getStatus() == Status.ACTIVE && (!card.getExpiry().before(now));
-
     }
 
     public boolean isAccountEligible(Account account, TransactionType type, BigDecimal amount) {

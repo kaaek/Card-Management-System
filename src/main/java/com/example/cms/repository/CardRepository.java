@@ -11,4 +11,6 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
 
     boolean existsByCardNumber(String cardNumber);
 
+    Card findByCardNumber(String cardNumber);
+
 }

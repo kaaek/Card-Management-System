@@ -35,10 +35,6 @@ public class Account {
     @Column(name = "currency", updatable = false, nullable = false)
     private Currency currency;
 
-    // Manually establishing a one-to-many relationship with the account_card join table:
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<AccountCard> accountCards = new HashSet<>();
-
     public Account(Status status, BigDecimal balance, Currency currency){
         this.status = status;
         this.balance = balance;
