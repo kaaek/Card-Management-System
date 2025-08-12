@@ -3,14 +3,13 @@ package com.example.cms.service;
 import com.example.cms.dto.card.CardRequestDTO;
 import com.example.cms.dto.card.CardResponseDTO;
 import com.example.cms.dto.card.CardUpdateDTO;
-import com.example.cms.exception.CardNotFoundException;
 import com.example.cms.model.Account;
 import com.example.cms.model.AccountCard;
 import com.example.cms.model.Card;
 import com.example.cms.model.enums.Status;
-import com.example.cms.repository.AccountCardRepository;
 import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +21,12 @@ public class CardService {
 
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
-    private final AccountCardRepository accountCardRepository;
 
     private final ModelMapper mapper;
 
-    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, ModelMapper mapper) {
+    public CardService(CardRepository cardRepository, AccountRepository accountRepository, ModelMapper mapper) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
-        this.accountCardRepository = accountCardRepository;
         this.mapper = mapper;
     }
 
@@ -48,10 +45,8 @@ public class CardService {
         for (Account account : accounts) {
             AccountCard link = new AccountCard(account, newCard);
 
-//            // bidirectional persistence:
 //            newCard.getAccountCards().add(link);
 //            account.getAccountCards().add(link);
-//
 //            accountCardRepository.save(link);
 
             newCard.getAccountCards().add(link);
@@ -64,7 +59,7 @@ public class CardService {
     public CardResponseDTO getCardById(UUID id){
 
         Card card = cardRepository.findById(id)
-                .orElseThrow(() -> new CardNotFoundException("Card not found with ID: "+ id));
+                .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
 
         return mapper.map(card, CardResponseDTO.class);
     }
@@ -83,7 +78,7 @@ public class CardService {
 
         // Extract card if exists
         Card card = cardRepository.findById(id)
-                .orElseThrow(() -> new CardNotFoundException("Card not found with ID: "+ id));
+                .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
 
         card.setStatus(status);
         card.setExpiry(expiry);
@@ -129,24 +124,4 @@ public class CardService {
             throw new RuntimeException("Invalid status. Supported values are: ACTIVE, INACTIVE");
         }
     }
-//    public Set<UUID> mapAccountsToIds(Card card) {
-//        return card.getAccountCards().stream()
-//                .map(accountCard -> accountCard.getAccount().getId())
-//                .collect(Collectors.toSet());
-
-//    }
-//    public Set<Account> mapIdsToAccounts(Set<UUID> accountIds) {
-//        List<Account> accounts = accountRepository.findAllById(accountIds);
-//        Set<UUID> foundIds = accounts.stream()
-//                .map(Account::getId)
-//                .collect(Collectors.toSet());
-//        // to check consistency:
-//        Set<UUID> missingIds = new HashSet<>(accountIds);
-//        missingIds.removeAll(foundIds);
-//        if(!missingIds.isEmpty()){
-//            throw new IllegalArgumentException("Invalid account IDs: " + missingIds);
-//        }
-//        return new HashSet<>(accounts);
-
-//    }
 }

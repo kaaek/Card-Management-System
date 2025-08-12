@@ -102,7 +102,7 @@ public class TransactionService {
 
         // Old fields
         BigDecimal oldAmount = transaction.getAmount();
-        Timestamp oldDate = transaction.getDate();
+//        Timestamp oldDate = transaction.getDate();
         TransactionType oldType = transaction.getType();
         Currency oldCurrency = transaction.getCurrency();
 

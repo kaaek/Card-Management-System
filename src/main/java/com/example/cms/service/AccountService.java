@@ -2,11 +2,11 @@ package com.example.cms.service;
 import com.example.cms.dto.account.AccountRequestDTO;
 import com.example.cms.dto.account.AccountResponseDTO;
 import com.example.cms.dto.account.AccountUpdateDTO;
-import com.example.cms.exception.AccountNotFoundException;
 import com.example.cms.model.Account;
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
 import com.example.cms.repository.AccountRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import org.modelmapper.ModelMapper;
@@ -45,15 +45,9 @@ public class AccountService {
 
     public AccountResponseDTO getAccountById(UUID id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Account not found with ID: " + id));
 
         return this.mapper.map(account, AccountResponseDTO.class);
-//        return new AccountResponseDTO(
-//                account.getId(),
-//                account.getStatus(),
-//                account.getBalance(),
-//                account.getCurrency()
-//        );
     }
 
     public List<AccountResponseDTO> getAllAccounts() {
@@ -65,7 +59,7 @@ public class AccountService {
 
     public AccountResponseDTO update(UUID id, AccountUpdateDTO accountUpdateDTO){
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Account not found with ID: " + id));
         account.setStatus(accountUpdateDTO.getStatus());
         account.setBalance(accountUpdateDTO.getBalance());
         account.setCurrency(accountUpdateDTO.getCurrency());

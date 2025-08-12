@@ -4,6 +4,7 @@ import com.example.cms.dto.account.AccountRequestDTO;
 import com.example.cms.dto.account.AccountResponseDTO;
 import com.example.cms.dto.account.AccountUpdateDTO;
 import com.example.cms.service.AccountService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,34 +18,34 @@ public class AccountController {
 
     public AccountController(AccountService accountService){this.accountService = accountService;}
 
-    // GET API to fetch all accounts
     @GetMapping("/all")
-    public List<AccountResponseDTO> getAllAccounts(){
-        return accountService.getAllAccounts();
+    public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(){
+        List<AccountResponseDTO> dtos = accountService.getAllAccounts();
+        return ResponseEntity.ok(dtos);
     }
 
-    // Get API to fetch specific account
     @GetMapping("/{id}")
-    public AccountResponseDTO getAccountById(@PathVariable UUID id){
-        return accountService.getAccountById(id);
+    public ResponseEntity<AccountResponseDTO> getAccountById(@PathVariable UUID id){
+        AccountResponseDTO dto = accountService.getAccountById(id);
+        return ResponseEntity.ok(dto);
     }
 
-    // POST API to add an account
     @PostMapping("/new")
-    public AccountResponseDTO createAccount(@RequestBody AccountRequestDTO accountRequestDTO){
-        return accountService.createAccount(accountRequestDTO);
+    public ResponseEntity<AccountResponseDTO> createAccount(@RequestBody AccountRequestDTO accountRequestDTO){
+        AccountResponseDTO dto = accountService.createAccount(accountRequestDTO);
+        return ResponseEntity.ok(dto);
     }
 
-    // PUT API
     @PutMapping("/{id}")
-    public AccountResponseDTO update(@PathVariable UUID id, @RequestBody AccountUpdateDTO accountUpdateDTO){
-        return accountService.update(id, accountUpdateDTO);
+    public ResponseEntity<AccountResponseDTO> update(@PathVariable UUID id, @RequestBody AccountUpdateDTO accountUpdateDTO){
+        AccountResponseDTO dto = accountService.update(id, accountUpdateDTO);
+        return ResponseEntity.ok(dto);
     }
 
-    // Delete
     @DeleteMapping("/{id}")
-    public void deleteAccount (@PathVariable UUID id){
+    public ResponseEntity<Void> deleteAccount (@PathVariable UUID id){
         accountService.deleteAccount(id);
+        return ResponseEntity.noContent().build();
     }
 
 }
