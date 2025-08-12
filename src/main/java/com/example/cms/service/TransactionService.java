@@ -44,7 +44,7 @@ public class TransactionService {
 
         // Check if balance is positive.
         if(amount.compareTo(BigDecimal.valueOf(0)) <= 0){
-            throw new RuntimeException("Transaction amount cannot be zero or negative.");
+            throw new IllegalArgumentException("Transaction amount cannot be zero or negative.");
         }
 
         Timestamp date = createTimestamp();
@@ -66,7 +66,7 @@ public class TransactionService {
 
         // Check eligibility (if we can create this transaction or not)
         if(!(isCardValid(card) && isAccountEligible(account, type, amount))){
-            throw new RuntimeException("Transaction denied: invalid card or account not eligible (inactive or insufficient balance).");
+            throw new IllegalArgumentException("Transaction denied: invalid card or account not eligible (inactive or insufficient balance).");
         }
 
         // Create transaction
@@ -151,7 +151,7 @@ public class TransactionService {
         // Fetch Transaction
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found with ID: " + id));
-
+        transactionRepository.deleteById(transaction.getId());
         // Old fields
         BigDecimal oldAmount = transaction.getAmount();
         TransactionType oldType = transaction.getType();
@@ -167,7 +167,6 @@ public class TransactionService {
             account.setBalance(account.getBalance().add(oldAmount));
         }
         accountRepository.save(account);
-        transactionRepository.deleteById(id);
     }
 
     public Account getAccountFromCard(Card card, Currency currency) {

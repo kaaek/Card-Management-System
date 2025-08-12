@@ -12,5 +12,4 @@ import java.math.BigDecimal;
 public class AccountUpdateDTO {
     private Status status;
     private BigDecimal balance;
-    private Currency currency;
 }

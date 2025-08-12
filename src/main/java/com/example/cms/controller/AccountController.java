@@ -33,7 +33,7 @@ public class AccountController {
     @PostMapping("/new")
     public ResponseEntity<AccountResponseDTO> createAccount(@RequestBody AccountRequestDTO accountRequestDTO){
         AccountResponseDTO dto = accountService.createAccount(accountRequestDTO);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.status(201).body(dto);
     }
 
     @PutMapping("/{id}")

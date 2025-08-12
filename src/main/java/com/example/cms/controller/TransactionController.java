@@ -18,25 +18,6 @@ public class TransactionController {
 
     public TransactionController(TransactionService transactionService){this.transactionService = transactionService;}
 
-//    @GetMapping("/all")
-//    public List<TransactionResponseDTO> getAllTransactions() {return transactionService.getAllTransactions();}
-//
-//    @GetMapping("/{id}")
-//    public TransactionResponseDTO getTransactionById(@PathVariable UUID id){return transactionService.getTransactionById(id);}
-//
-//    @PostMapping("/new")
-//    public TransactionResponseDTO createTransaction(@RequestBody TransactionRequestDTO transactionRequestDTO){
-//        return transactionService.createTransaction(transactionRequestDTO);
-//    }
-//
-//    @PutMapping("/{id}")
-//    public TransactionResponseDTO update(@PathVariable UUID id, @RequestBody TransactionUpdateDTO transactionUpdateDTO){
-//        return transactionService.update(id, transactionUpdateDTO);
-//    }
-//
-//    @DeleteMapping("/{id}")
-//    public void deleteTransaction (@PathVariable UUID id){transactionService.deleteTransaction(id);}
-
     @GetMapping("/all")
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions() {
         List<TransactionResponseDTO> dtos = transactionService.getAllTransactions();
@@ -66,6 +47,4 @@ public class TransactionController {
         transactionService.deleteTransaction(id);
         return ResponseEntity.noContent().build();
     }
-
-
 }

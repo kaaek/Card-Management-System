@@ -35,7 +35,7 @@ public class CardService {
         // Fetch accounts
         List<Account> accounts = accountRepository.findAllById(cardRequestDTO.getAccountIds());
         if (accounts.size() != cardRequestDTO.getAccountIds().size()) {
-            throw new RuntimeException("One or more Account IDs are invalid");
+            throw new EntityNotFoundException("One or more Account IDs are invalid");
         }
 
         // Create card
@@ -89,7 +89,9 @@ public class CardService {
     }
 
     public void deleteCard(UUID id){
-        cardRepository.deleteById(id);
+        Card card = cardRepository.findById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
+        cardRepository.delete(card);
     }
 
     // Helper methods

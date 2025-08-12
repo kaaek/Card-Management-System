@@ -6,6 +6,7 @@ import com.example.cms.model.Account;
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
 import com.example.cms.repository.AccountRepository;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,6 @@ public class AccountService {
     }
 
     public AccountResponseDTO createAccount(AccountRequestDTO accountRequestDTO){
-//        Currency currency = parseCurrency(accountRequestDTO.getCurrency());
         // Fields
         BigDecimal balance = accountRequestDTO.getBalance();
         Currency currency = accountRequestDTO.getCurrency();
@@ -40,7 +40,6 @@ public class AccountService {
         accountRepository.save(account);
 
         return this.mapper.map(account, AccountResponseDTO.class);
-//        return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
     }
 
     public AccountResponseDTO getAccountById(UUID id) {
@@ -62,14 +61,14 @@ public class AccountService {
                 .orElseThrow(() -> new EntityNotFoundException("Account not found with ID: " + id));
         account.setStatus(accountUpdateDTO.getStatus());
         account.setBalance(accountUpdateDTO.getBalance());
-        account.setCurrency(accountUpdateDTO.getCurrency());
         accountRepository.save(account);
         return this.mapper.map(account, AccountResponseDTO.class);
-//        return new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency());
     }
 
     public void deleteAccount(UUID id){
-        accountRepository.deleteById(id);
+        Account account = accountRepository.findById(id)
+                        .orElseThrow(() -> new EntityNotFoundException("Account not found with ID: " + id));
+        accountRepository.delete(account);
     }
 
 

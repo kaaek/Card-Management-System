@@ -19,25 +19,6 @@ public class CardController {
         this.cardService = cardService;
     }
 
-//    @GetMapping("/all")
-//    public List<CardResponseDTO> getAllCards(){return cardService.getAllCards();}
-//
-//    @GetMapping("/{id}")
-//    public CardResponseDTO getCardById(@PathVariable UUID id){return cardService.getCardById(id);}
-//
-//    @PostMapping("/new")
-//    public CardResponseDTO createCard(@RequestBody CardRequestDTO cardRequestDTO) {
-//        return cardService.createCard(cardRequestDTO);
-//    }
-//
-//    @PutMapping("/{id}")
-//    public CardResponseDTO update(@PathVariable UUID id, @RequestBody CardUpdateDTO cardUpdateDTO){
-//        return cardService.update(id, cardUpdateDTO);
-//    }
-//
-//    @DeleteMapping("/{id}")
-//    public void deleteCard (@PathVariable UUID id) {cardService.deleteCard(id);}
-
     @GetMapping("/all")
     public ResponseEntity<List<CardResponseDTO>> getAllCards(){
         List<CardResponseDTO> dtos = cardService.getAllCards();
@@ -53,7 +34,7 @@ public class CardController {
     @PostMapping("/new")
     public ResponseEntity<CardResponseDTO> createCard(@RequestBody CardRequestDTO cardRequestDTO) {
         CardResponseDTO dto = cardService.createCard(cardRequestDTO);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.status(201).body(dto);
     }
 
     @PutMapping("/{id}")
@@ -67,5 +48,4 @@ public class CardController {
         cardService.deleteCard(id);
         return ResponseEntity.noContent().build();
     }
-
 }
