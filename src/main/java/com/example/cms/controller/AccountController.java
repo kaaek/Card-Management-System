@@ -41,17 +41,6 @@ public class AccountController {
         return accountService.update(id, accountUpdateDTO);
     }
 
-//     PATCH API
-//    @PatchMapping("/{id}/balance") // TO-DO: update endpoint
-//    public AccountResponseDTO updateBalance(@PathVariable UUID id, @RequestBody BigDecimal newBalance){
-//        return accountService.updateBalance(id, newBalance);
-//    }
-//
-//    @PatchMapping("/{id}/status") // TO-DO: update endpoint
-//    public AccountResponseDTO updateStatus(@PathVariable UUID id, @RequestBody String newStatus){
-//        return accountService.updateStatus(id, newStatus);
-//    }
-
     // Delete
     @DeleteMapping("/{id}")
     public void deleteAccount (@PathVariable UUID id){

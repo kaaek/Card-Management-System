@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 public class AccountUpdateDTO {
-    private String status;
+    private Status status;
     private BigDecimal balance;
-    private String currency;
+    private Currency currency;
 }

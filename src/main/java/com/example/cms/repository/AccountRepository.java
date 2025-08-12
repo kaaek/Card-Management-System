@@ -8,8 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, UUID> {
-    /*
-    Get out of the box: save(Account account) (creates and updates), findById(UUID id), findAll(), deleteById(UUID id), existsById(UUID id), count()
-    */
 
 }

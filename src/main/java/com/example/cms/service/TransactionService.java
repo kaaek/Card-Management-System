@@ -12,6 +12,7 @@ import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
 import com.example.cms.repository.TransactionRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -25,11 +26,13 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
+    private final ModelMapper mapper;
 
-    public TransactionService(TransactionRepository transactionRepository, CardRepository cardRepository, AccountRepository accountRepository){
+    public TransactionService(TransactionRepository transactionRepository, CardRepository cardRepository, AccountRepository accountRepository, ModelMapper mapper){
         this.transactionRepository = transactionRepository;
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
+        this.mapper = mapper;
     }
 
     public TransactionResponseDTO createTransaction(TransactionRequestDTO transactionRequestDTO){
@@ -38,29 +41,32 @@ public class TransactionService {
 
         // Prepare to create a transaction object, need the parameters amount, date, type, currency, and card id.
         BigDecimal amount = transactionRequestDTO.getAmount();
+
+        // Check if balance is positive.
         if(amount.compareTo(BigDecimal.valueOf(0)) <= 0){
             throw new RuntimeException("Transaction amount cannot be zero or negative.");
         }
 
         Timestamp date = createTimestamp();
-        TransactionType type = parseTransactionType(transactionRequestDTO.getType());
-        Currency currency = parseCurrency(transactionRequestDTO.getCurrency());
+        TransactionType type = transactionRequestDTO.getType();
+        Currency currency = transactionRequestDTO.getCurrency();
 
-        // Find the card's account w/ matching currency to check:
-        Optional<Account> matchingAccount = card.getAccountCards()
-                .stream()
-                .map(AccountCard::getAccount)
-                .filter(acc -> acc.getCurrency().equals(currency))
-                .findFirst();
-        if (matchingAccount.isEmpty()) {
-            throw new RuntimeException("No account with matching currency found.");
-        }
-        Account account = matchingAccount.get();
+//        // Find the card's account w/ matching currency to check:
+//        Optional<Account> matchingAccount = card.getAccountCards()
+//                .stream()
+//                .map(AccountCard::getAccount)
+//                .filter(acc -> acc.getCurrency().equals(currency))
+//                .findFirst();
+//        if (matchingAccount.isEmpty()) {
+//            throw new RuntimeException("No account with matching currency found.");
+//        }
+//        Account account = matchingAccount.get();
+
+        Account account = getAccountFromCard(card, currency);
 
         // Check eligibility (if we can create this transaction or not)
         if(!(isCardValid(card) && isAccountEligible(account, type, amount))){
             throw new RuntimeException("Transaction denied: invalid card or account not eligible (inactive or insufficient balance).");
-            // Execution stops here
         }
 
         // Create transaction
@@ -70,16 +76,9 @@ public class TransactionService {
         // Add or subtract value from account's balance.
         updateBalance(account, transaction);
         // Persist
-        Transaction savedTransaction = transactionRepository.save(transaction);
+        transactionRepository.save(transaction);
 
-        return new TransactionResponseDTO(
-                savedTransaction.getId(),
-                savedTransaction.getAmount(),
-                savedTransaction.getDate(),
-                savedTransaction.getType(),
-                savedTransaction.getCurrency(),
-                savedTransaction.getCard().getId()
-        );
+        return mapper.map(transaction, TransactionResponseDTO.class);
     }
 
     public List<TransactionResponseDTO> getAllTransactions(){
@@ -90,56 +89,98 @@ public class TransactionService {
     }
 
     public TransactionResponseDTO getTransactionById(UUID id){
-        Optional<Transaction> query = transactionRepository.findById(id);
-        if(query.isPresent()){
-            Transaction transaction = query.get();
-            return new TransactionResponseDTO(transaction.getId(), transaction.getAmount(), transaction.getDate(), transaction.getType(), transaction.getCurrency(), transaction.getCard().getId());
-        } else {
-            throw new RuntimeException("Transaction not found.");
-        }
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Transaction not found with ID: " + id));
+        return mapper.map(transaction, TransactionResponseDTO.class);
     }
 
     public TransactionResponseDTO update(UUID id, TransactionUpdateDTO transactionUpdateDTO){
-        // Extract transaction if exists
-        Optional<Transaction> query = transactionRepository.findById(id);
-        if(query.isPresent()){
-            // Prepare to create a transaction object, need the parameters amount, type, currency, and card id.
-            BigDecimal amount = transactionUpdateDTO.getAmount();
-            TransactionType type = parseTransactionType(transactionUpdateDTO.getType());
-            Currency newCurrency = parseCurrency(transactionUpdateDTO.getCurrency());
-            UUID cardId = transactionUpdateDTO.getCardId();
 
-            Transaction transaction = query.get();
-            // Set new values
-            transaction.setAmount(amount);
-            transaction.setType(type);
-            transaction.setCurrency(newCurrency);
+        // Fetch Transaction
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Transaction not found with ID: " + id));
 
-            // Updating card
-            Card oldCard = transaction.getCard();
-            // For the new card: first, fetch.
-            Card newCard = findCardOrThrow(cardId);
-            // Check if the new and old cards are equal.
-            if (oldCard != null && !oldCard.equals(newCard)) { // card is different.
-                oldCard.removeTransaction(transaction);
-                newCard.addTransaction(transaction);
-            }
-            transaction.setCard(newCard);
+        // Old fields
+        BigDecimal oldAmount = transaction.getAmount();
+        Timestamp oldDate = transaction.getDate();
+        TransactionType oldType = transaction.getType();
+        Currency oldCurrency = transaction.getCurrency();
 
-            // Persist
-            transactionRepository.save(transaction);
-            return new TransactionResponseDTO(transaction.getId(), transaction.getAmount(), transaction.getDate(), transaction.getType(), transaction.getCurrency(), transaction.getCard().getId());
-        } else {
-            throw new RuntimeException("Transaction not found");
+        // New fields
+        BigDecimal newAmount = transactionUpdateDTO.getAmount();
+        TransactionType newType = transactionUpdateDTO.getType();
+        Currency newCurrency = transactionUpdateDTO.getCurrency();
+
+        // Checking validity: can't change transaction's currency
+        if(!newCurrency.equals(oldCurrency)){
+            throw new IllegalArgumentException("Transaction currency is immutable.");
         }
+
+        Card card = transaction.getCard();
+        Account account = getAccountFromCard(card, oldCurrency);
+
+        // Negate old transaction effect
+        if(oldType == TransactionType.C) { // was credit, so subtract that amount
+            account.setBalance(account.getBalance().subtract(oldAmount));
+        } else if(oldType == TransactionType.D){ // was debit, so add that amount
+            account.setBalance(account.getBalance().add(oldAmount));
+        }
+
+        // Apply new transaction effect
+        if(newType == TransactionType.C){
+            account.setBalance(account.getBalance().add(newAmount));
+        } else if(newType == TransactionType.D){
+            account.setBalance(account.getBalance().subtract(newAmount));
+        } else {
+            throw new RuntimeException("Transaction type is invalid.");
+        }
+
+        accountRepository.save(account);
+
+        transaction.setAmount(newAmount);
+        transaction.setType(newType);
+
+        transactionRepository.save(transaction);
+
+        return mapper.map(transaction, TransactionResponseDTO.class);
     }
 
-    // TO-DO: add per-field update method.
 
-    // Helper methods:
-
+    // Helper methods
     public void deleteTransaction(UUID id){
+        // Fetch Transaction
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Transaction not found with ID: " + id));
+
+        // Old fields
+        BigDecimal oldAmount = transaction.getAmount();
+        TransactionType oldType = transaction.getType();
+        Currency oldCurrency = transaction.getCurrency();
+
+        Card card = transaction.getCard();
+        Account account = getAccountFromCard(card, oldCurrency);
+
+        // Negate old transaction effect
+        if(oldType == TransactionType.C) { // was credit, so subtract that amount
+            account.setBalance(account.getBalance().subtract(oldAmount));
+        } else if(oldType == TransactionType.D){ // was debit, so add that amount
+            account.setBalance(account.getBalance().add(oldAmount));
+        }
+        accountRepository.save(account);
         transactionRepository.deleteById(id);
+    }
+
+    public Account getAccountFromCard(Card card, Currency currency) {
+        // Find the card's account w/ matching currency to check:
+        Optional<Account> matchingAccount = card.getAccountCards()
+                .stream()
+                .map(AccountCard::getAccount)
+                .filter(acc -> acc.getCurrency().equals(currency))
+                .findFirst();
+        if (matchingAccount.isEmpty()) {
+            throw new RuntimeException("No account with matching currency found.");
+        }
+        return matchingAccount.get();
     }
 
     public void updateBalance(Account account, Transaction transaction){
@@ -156,7 +197,7 @@ public class TransactionService {
 
     public boolean isCardValid(Card card){
         Date now = new Date();
-        return card.getStatus() == Status.ACTIVE && (card.getExpiry().equals(now) || card.getExpiry().after(now));
+        return card.getStatus() == Status.ACTIVE && (!card.getExpiry().before(now));
 
     }
 
@@ -178,22 +219,6 @@ public class TransactionService {
 
     public Card findCardOrThrow(UUID id) {
         return cardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Card not found"));
-    }
-
-    public TransactionType parseTransactionType(String s){
-        try {
-            return TransactionType.valueOf(s.strip().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid type. Supported values: C (Credit), D (Debit)");
-        }
-    }
-
-    public Currency parseCurrency(String s){
-        try {
-            return Currency.valueOf(s.strip().toUpperCase());
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Invalid currency. Supported values are: USD, LBP");
-        }
     }
 
 }

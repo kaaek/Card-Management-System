@@ -15,7 +15,6 @@ public class AccountResponseDTO {
     private Status status;
     private BigDecimal balance;
     private Currency currency;
-    // TO-DO: Add cards?
 
     public AccountResponseDTO(UUID id, Status status, BigDecimal balance, Currency currency){
         this.id = id;

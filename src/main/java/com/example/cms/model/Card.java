@@ -48,16 +48,6 @@ public class Card {
         // TO-DO: add debug message
     }
 
-    public void activate(){
-        setStatus(Status.ACTIVE);
-        // System.out.println("Card with ID = "+getId()+" status was set to "+ Status.ACTIVE);
-    }
-
-    public void deactivate(){
-        setStatus(Status.INACTIVE);
-        // System.out.println("Card with ID = "+getId()+" status was set to "+ Status.INACTIVE);
-    }
-
     public void addTransaction(Transaction transaction){
         transactions.add(transaction);
         transaction.setCard(this);

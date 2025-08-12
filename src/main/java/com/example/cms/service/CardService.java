@@ -34,42 +34,45 @@ public class CardService {
     }
 
     public CardResponseDTO createCard(CardRequestDTO cardRequestDTO) {
+
         // Fetch accounts
         List<Account> accounts = accountRepository.findAllById(cardRequestDTO.getAccountIds());
         if (accounts.size() != cardRequestDTO.getAccountIds().size()) {
             throw new RuntimeException("One or more Account IDs are invalid");
         }
+
         // Create card
-        Card card = new Card(Status.ACTIVE, newExpiryDate(), generate16DigitNumber());
-        card = cardRepository.save(card);
+        Card newCard = new Card(Status.ACTIVE, newExpiryDate(), generate16DigitNumber());
 
         // Link to accounts via join table
         for (Account account : accounts) {
-            AccountCard link = new AccountCard(account, card);
+            AccountCard link = new AccountCard(account, newCard);
 
-            // bidirectional persistence:
-            card.getAccountCards().add(link);
+//            // bidirectional persistence:
+//            newCard.getAccountCards().add(link);
+//            account.getAccountCards().add(link);
+//
+//            accountCardRepository.save(link);
+
+            newCard.getAccountCards().add(link);
             account.getAccountCards().add(link);
-            accountCardRepository.save(link);
         }
-        return this.mapper.map(card, CardResponseDTO.class);
-//        return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
+        cardRepository.save(newCard);
+        return mapper.map(newCard, CardResponseDTO.class);
     }
 
     public CardResponseDTO getCardById(UUID id){
-        Optional<Card> optionalCard = cardRepository.findById(id);
-        if(optionalCard.isPresent()){
-            Card card = optionalCard.get();
-            return new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card));
-        } else {
-            throw new RuntimeException("Card not found");
-        }
+
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new CardNotFoundException("Card not found with ID: "+ id));
+
+        return mapper.map(card, CardResponseDTO.class);
     }
 
     public List<CardResponseDTO> getAllCards() {
         return cardRepository.findAll()
                 .stream()
-                .map(card -> new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber(), mapAccountsToIds(card)))
+                .map(card -> new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber()))
                 .collect(Collectors.toList());
     }
 
@@ -77,34 +80,18 @@ public class CardService {
         // Prepare parameters for response dto
         Status status = parseStatus(cardUpdateDTO.getStatus());
         Date expiry = cardUpdateDTO.getExpiry();
-        Set<UUID> accountIds = cardUpdateDTO.getAccountIds();
 
         // Extract card if exists
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Card not found with ID: "+ id));
+
         card.setStatus(status);
         card.setExpiry(expiry);
 
-        // Clear and repopulate the collection
-        card.getAccountCards().clear(); // assumes orphanRemoval = true
-        Set<Account> accounts = mapIdsToAccounts(accountIds);
-        for (Account account : accounts) {
-            AccountCard link = new AccountCard(account, card);
-            card.getAccountCards().add(link);
-        }
+        cardRepository.save(card);
 
-        Card savedCard = cardRepository.save(card);
-
-        return new CardResponseDTO(
-            savedCard.getId(),
-            savedCard.getStatus(),
-            savedCard.getExpiry(),
-            savedCard.getCardNumber(),
-            mapAccountsToIds(savedCard)
-        );
+        return mapper.map(card, CardResponseDTO.class);
     }
-
-    // TO-DO: add per-field update method.
 
     public void deleteCard(UUID id){
         cardRepository.deleteById(id);
@@ -135,26 +122,6 @@ public class CardService {
         return cal.getTime();
     }
 
-    public Set<UUID> mapAccountsToIds(Card card) {
-        return card.getAccountCards().stream()
-                .map(accountCard -> accountCard.getAccount().getId())
-                .collect(Collectors.toSet());
-    }
-
-    public Set<Account> mapIdsToAccounts(Set<UUID> accountIds) {
-        List<Account> accounts = accountRepository.findAllById(accountIds);
-        Set<UUID> foundIds = accounts.stream()
-                .map(Account::getId)
-                .collect(Collectors.toSet());
-        // to check consistency:
-        Set<UUID> missingIds = new HashSet<>(accountIds);
-        missingIds.removeAll(foundIds);
-        if(!missingIds.isEmpty()){
-            throw new IllegalArgumentException("Invalid account IDs: " + missingIds);
-        }
-        return new HashSet<>(accounts);
-    }
-
     public Status parseStatus (String s){
         try{
             return Status.valueOf(s.strip().toUpperCase());
@@ -162,4 +129,24 @@ public class CardService {
             throw new RuntimeException("Invalid status. Supported values are: ACTIVE, INACTIVE");
         }
     }
+//    public Set<UUID> mapAccountsToIds(Card card) {
+//        return card.getAccountCards().stream()
+//                .map(accountCard -> accountCard.getAccount().getId())
+//                .collect(Collectors.toSet());
+
+//    }
+//    public Set<Account> mapIdsToAccounts(Set<UUID> accountIds) {
+//        List<Account> accounts = accountRepository.findAllById(accountIds);
+//        Set<UUID> foundIds = accounts.stream()
+//                .map(Account::getId)
+//                .collect(Collectors.toSet());
+//        // to check consistency:
+//        Set<UUID> missingIds = new HashSet<>(accountIds);
+//        missingIds.removeAll(foundIds);
+//        if(!missingIds.isEmpty()){
+//            throw new IllegalArgumentException("Invalid account IDs: " + missingIds);
+//        }
+//        return new HashSet<>(accounts);
+
+//    }
 }
