@@ -1,5 +1,6 @@
 package com.example.cms.repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import com.example.cms.model.Card;
@@ -11,6 +12,6 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
 
     boolean existsByCardNumber(String cardNumber);
 
-    Card findByCardNumber(String cardNumber);
+    Optional<Card> findByCardNumber(String cardNumber);
 
 }

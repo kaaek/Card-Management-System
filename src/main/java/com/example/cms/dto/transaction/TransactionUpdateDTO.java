@@ -1,6 +1,4 @@
 package com.example.cms.dto.transaction;
-
-import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +13,5 @@ import java.sql.Timestamp;
 public class TransactionUpdateDTO {
     private BigDecimal amount;
     private TransactionType type;
-    private Currency currency;
     private Timestamp date;
 }

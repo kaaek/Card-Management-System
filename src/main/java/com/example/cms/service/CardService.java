@@ -84,13 +84,6 @@ public class CardService {
         return mapper.map(card, CardResponseDTO.class);
     }
 
-//    public void deleteCard(UUID id){
-//        Card card = cardRepository.findById(id)
-//                        .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
-//        accountCardRepository.deleteByCard(card);
-//        cardRepository.delete(card);
-//    }
-
     public void deleteCard(UUID id) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: " + id));

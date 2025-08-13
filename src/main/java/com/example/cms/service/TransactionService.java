@@ -40,7 +40,9 @@ public class TransactionService {
 
     public TransactionResponseDTO createTransaction(TransactionRequestDTO transactionRequestDTO){
         // Fetch cards
-        Card card = findCardOrThrow(transactionRequestDTO.getCardId());
+        String cardNumber = transactionRequestDTO.getCardNumber();
+        Card card = cardRepository.findByCardNumber(cardNumber)
+            .orElseThrow(() -> new EntityNotFoundException("Card with number: " + cardNumber + " was not found."));
 
         // Prepare to create a transaction object, need the parameters amount, date, type, currency, and card id.
         BigDecimal amount = transactionRequestDTO.getAmount();
@@ -53,9 +55,10 @@ public class TransactionService {
         Timestamp date = createTimestamp();
         TransactionType type = transactionRequestDTO.getType();
         Currency currency = transactionRequestDTO.getCurrency();
-        Account account = getAccountFromCard(card, currency);
 
         // Check eligibility (if we can create this transaction or not)
+        Account account = getAccountFromCard(card, currency);
+
         if(!(isCardValid(card) && isAccountEligible(account, type, amount))){
             throw new IllegalArgumentException("Transaction denied: invalid card or account not eligible (inactive or insufficient balance).");
         }
@@ -99,12 +102,6 @@ public class TransactionService {
         BigDecimal newAmount = transactionUpdateDTO.getAmount();
         Timestamp newDate = transactionUpdateDTO.getDate();
         TransactionType newType = transactionUpdateDTO.getType();
-        Currency newCurrency = transactionUpdateDTO.getCurrency();
-
-        // Checking validity: can't change transaction's currency
-        if(!newCurrency.equals(oldCurrency)){
-            throw new IllegalArgumentException("Transaction currency is immutable.");
-        }
 
         Card card = transaction.getCard();
         Account account = getAccountFromCard(card, oldCurrency);
