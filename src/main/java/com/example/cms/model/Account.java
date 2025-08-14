@@ -3,6 +3,7 @@ package com.example.cms.model;
 import com.example.cms.model.enums.Currency;
 import com.example.cms.model.enums.Status;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "accounts")
 public class Account {
 
@@ -23,7 +25,7 @@ public class Account {
     private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "card_status", nullable = false)
+    @Column(name = "status", nullable = false)
     private Status status;
 
     @Column(name = "balance", nullable = false)

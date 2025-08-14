@@ -20,11 +20,11 @@ public class AccountCard {
     private UUID id; // pk
 
     @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false) // Foreign key to Account entity
+    @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
     @ManyToOne
-    @JoinColumn(name = "card_id", nullable = false) // Foreign key to Card entity
+    @JoinColumn(name = "card_id", nullable = false)
     private Card card;
 
     public AccountCard(Account account, Card card) {

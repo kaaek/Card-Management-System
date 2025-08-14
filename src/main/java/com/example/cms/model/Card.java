@@ -3,6 +3,7 @@ package com.example.cms.model;
 import com.example.cms.util.CryptoConverter;
 import com.example.cms.model.enums.Status;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "cards")
 public class Card {
 

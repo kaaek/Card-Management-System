@@ -37,7 +37,7 @@ public class Transaction {
     private Currency currency;
 
     @ManyToOne
-    @JoinColumn(name = "card_id", referencedColumnName = "id")
+    @JoinColumn(name = "card_id", referencedColumnName = "id", nullable = false)
     private Card card;
 
     public Transaction(BigDecimal transactionAmount, Timestamp transactionDate, TransactionType transactionType, Currency currency, Card card){

@@ -37,13 +37,13 @@ public class AccountController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AccountResponseDTO> update(@PathVariable UUID id, @RequestBody AccountUpdateDTO accountUpdateDTO){
+    public ResponseEntity<AccountResponseDTO> update(@PathVariable("id") UUID id, @RequestBody AccountUpdateDTO accountUpdateDTO){
         AccountResponseDTO dto = accountService.update(id, accountUpdateDTO);
         return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAccount (@PathVariable UUID id){
+    public ResponseEntity<Void> deleteAccount (@PathVariable("id") UUID id){
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
     }

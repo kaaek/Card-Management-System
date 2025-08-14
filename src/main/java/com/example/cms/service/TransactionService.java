@@ -167,7 +167,7 @@ public class TransactionService {
                 .filter(acc -> acc.getCurrency().equals(currency))
                 .findFirst();
         if (matchingAccount.isEmpty()) {
-            throw new RuntimeException("No account with matching currency found.");
+            throw new IllegalArgumentException("No account with matching currency found.");
         }
         return matchingAccount.get();
     }
@@ -179,7 +179,7 @@ public class TransactionService {
         } else if (transaction.getType().equals(TransactionType.D)) { // Take money from account
             account.setBalance(account.getBalance().subtract(transaction.getAmount()));
         } else {
-            throw new RuntimeException("Transaction type is invalid. Could not update account's balance.");
+            throw new IllegalArgumentException("Transaction type is invalid. Could not update account's balance.");
         }
         accountRepository.save(account);
     }

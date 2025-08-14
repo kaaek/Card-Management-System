@@ -10,6 +10,8 @@ import com.example.cms.model.enums.Status;
 import com.example.cms.repository.AccountCardRepository;
 import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
+import com.example.cms.repository.TransactionRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -23,13 +25,15 @@ public class CardService {
     private final CardRepository cardRepository;
     private final AccountRepository accountRepository;
     private final AccountCardRepository accountCardRepository;
+    private final TransactionRepository transactionRepository;
 
     private final ModelMapper mapper;
 
-    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, ModelMapper mapper) {
+    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, TransactionRepository transactionRepository, ModelMapper mapper) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
         this.accountCardRepository = accountCardRepository;
+        this.transactionRepository = transactionRepository;
         this.mapper = mapper;
     }
 
@@ -87,6 +91,9 @@ public class CardService {
     public void deleteCard(UUID id) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: " + id));
+
+        // the associated transaction rows have a foreign key pointing to the card object, so we need to delete them first.
+        transactionRepository.deleteByCard(card);
 
         List<AccountCard> accountCards = accountCardRepository.findByCard(card);
         accountCardRepository.deleteAll(accountCards);

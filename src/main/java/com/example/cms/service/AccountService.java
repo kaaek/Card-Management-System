@@ -10,6 +10,8 @@ import com.example.cms.model.enums.Status;
 import com.example.cms.repository.AccountCardRepository;
 import com.example.cms.repository.AccountRepository;
 import com.example.cms.repository.CardRepository;
+import com.example.cms.repository.TransactionRepository;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -27,12 +29,14 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountCardRepository accountCardRepository;
     private final CardRepository cardRepository;
+    private final TransactionRepository transactionRepository;
     private final ModelMapper mapper;
 
-    public AccountService(AccountRepository accountRepository, AccountCardRepository accountCardRepository, CardRepository cardRepository) {
+    public AccountService(AccountRepository accountRepository, AccountCardRepository accountCardRepository, CardRepository cardRepository, TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
         this.accountCardRepository = accountCardRepository;
         this.cardRepository = cardRepository;
+        this.transactionRepository = transactionRepository;
         this.mapper = new ModelMapper();
     }
 
@@ -84,7 +88,9 @@ public class AccountService {
         accountCardRepository.deleteAll(accountCards);
 
         for (Card card : cards) {
-            if (!accountCardRepository.existsByCard(card)) {
+            if (!accountCardRepository.existsByCard(card)) { // If there is no more accountCard rows for a card that exists, this means that the card is now orphaned. meaning, it belonged only to the account we are deleting. Hence, cascade the deletion and delete the card too.
+                // Before deleting the card, we need to delete its transactions (since these rows have a foreign key pointing to the card)
+                transactionRepository.deleteByCard(card);
                 cardRepository.delete(card);
             }
         }
