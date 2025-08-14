@@ -26,7 +26,7 @@ public class CardController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CardResponseDTO> getCardById(@PathVariable UUID id){
+    public ResponseEntity<CardResponseDTO> getCardById(@PathVariable("id") UUID id){
         CardResponseDTO dto = cardService.getCardById(id);
         return ResponseEntity.ok(dto);
     }
@@ -38,13 +38,13 @@ public class CardController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CardResponseDTO> update (@PathVariable UUID id, @RequestBody CardUpdateDTO cardUpdateDTO) {
+    public ResponseEntity<CardResponseDTO> update (@PathVariable("id") UUID id, @RequestBody CardUpdateDTO cardUpdateDTO) {
         CardResponseDTO dto = cardService.update(id, cardUpdateDTO);
         return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCard (@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteCard (@PathVariable("id") UUID id) {
         cardService.deleteCard(id);
         return ResponseEntity.noContent().build();
     }

@@ -25,7 +25,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionResponseDTO> getTransactionById(@PathVariable UUID id) {
+    public ResponseEntity<TransactionResponseDTO> getTransactionById(@PathVariable("id") UUID id) {
         TransactionResponseDTO dto = transactionService.getTransactionById(id);
         return ResponseEntity.ok(dto);
     }
@@ -37,13 +37,13 @@ public class TransactionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TransactionResponseDTO> update(@PathVariable UUID id, @RequestBody TransactionUpdateDTO dto) {
+    public ResponseEntity<TransactionResponseDTO> update(@PathVariable("id") UUID id, @RequestBody TransactionUpdateDTO dto) {
         TransactionResponseDTO updated = transactionService.update(id, dto);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransaction(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteTransaction(@PathVariable("id") UUID id) {
         transactionService.deleteTransaction(id);
         return ResponseEntity.noContent().build();
     }
