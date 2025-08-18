@@ -1,5 +1,7 @@
 package com.example.cms.controller;
 
+import com.example.cms.dto.credit.CreditRequestDTO;
+import com.example.cms.dto.debit.DebitRequestDTO;
 import com.example.cms.dto.transaction.TransactionRequestDTO;
 import com.example.cms.dto.transaction.TransactionResponseDTO;
 import com.example.cms.dto.transaction.TransactionUpdateDTO;
@@ -34,6 +36,18 @@ public class TransactionController {
     public ResponseEntity<TransactionResponseDTO> createTransaction(@RequestBody TransactionRequestDTO dto) {
         TransactionResponseDTO created = transactionService.createTransaction(dto);
         return ResponseEntity.status(201).body(created);
+    }
+    
+    @PostMapping("/debit")
+    public ResponseEntity<TransactionResponseDTO> debit(@RequestBody DebitRequestDTO request) {
+        TransactionResponseDTO dto = transactionService.debit(request);
+        return ResponseEntity.status(201).body(dto);
+    }
+
+    @PostMapping("/credit")
+    public ResponseEntity<TransactionResponseDTO> debit (@RequestBody CreditRequestDTO request) { // TODO: add a credit method
+        TransactionResponseDTO dto = transactionService.credit(request);
+        return ResponseEntity.status(201).body(dto);
     }
 
     @PutMapping("/{id}")

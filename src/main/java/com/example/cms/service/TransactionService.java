@@ -1,4 +1,6 @@
 package com.example.cms.service;
+import com.example.cms.dto.credit.CreditRequestDTO;
+import com.example.cms.dto.debit.DebitRequestDTO;
 import com.example.cms.dto.transaction.TransactionRequestDTO;
 import com.example.cms.dto.transaction.TransactionResponseDTO;
 import com.example.cms.dto.transaction.TransactionUpdateDTO;
@@ -66,6 +68,69 @@ public class TransactionService {
         // Create transaction
         Transaction transaction = new Transaction(amount, date, type, currency, card);
         // Add or subtract value from account's balance.
+        updateBalance(account, transaction);
+        // Persist
+        transactionRepository.save(transaction);
+
+        return mapper.map(transaction, TransactionResponseDTO.class);
+    }
+
+    public TransactionResponseDTO debit (DebitRequestDTO request) {
+        // DTO fields:
+        String cardNumber = request.getCardNumber();
+        BigDecimal amount = request.getAmount();
+        Currency currency = request.getCurrency();
+
+        Card card = cardRepository.findByCardNumber(cardNumber)
+            .orElseThrow(() -> new IllegalArgumentException("Card with number: "+cardNumber+" not found in db."));
+
+        // Check if transaction amount is positive.
+        if(amount.compareTo(BigDecimal.valueOf(0)) <= 0){
+            throw new IllegalArgumentException("Transaction amount cannot be zero or negative.");
+        }
+
+        Timestamp date = createTimestamp();
+        TransactionType type = TransactionType.D; // Debit
+        
+        // Check eligibility (if we can create this transaction or not)
+        Account account = getAccountFromCard(card, currency);
+
+        if(!(isCardValid(card) && isAccountEligible(account, type, amount))){
+            throw new IllegalArgumentException("Transaction denied: invalid card or account not eligible (inactive or insufficient balance).");
+        }
+
+        // Create transaction
+        Transaction transaction = new Transaction(amount, date, type, currency, card);
+        // Add or subtract value from account's balance.
+        updateBalance(account, transaction);
+        // Persist
+        transactionRepository.save(transaction);
+
+        return mapper.map(transaction, TransactionResponseDTO.class);
+    }
+
+    public TransactionResponseDTO credit (CreditRequestDTO request) {
+        // DTO Fields:
+        String cardNumber = request.getCardNumber();
+        BigDecimal amount = request.getAmount();
+        Currency currency = request.getCurrency();
+
+        Card card = cardRepository.findByCardNumber(cardNumber)
+            .orElseThrow(() -> new IllegalArgumentException("Card with number: "+cardNumber+" not found in db."));
+
+        // Check if transaction amount is positive.
+        if(amount.compareTo(BigDecimal.valueOf(0)) <= 0){
+            throw new IllegalArgumentException("Transaction amount cannot be zero or negative.");
+        }
+
+        Timestamp date = createTimestamp();
+        TransactionType type = TransactionType.C; // Credit
+
+        // Create transaction
+        Transaction transaction = new Transaction(amount, date, type, currency, card);
+        
+        // Add or subtract value from account's balance.
+        Account account = getAccountFromCard(card, currency);
         updateBalance(account, transaction);
         // Persist
         transactionRepository.save(transaction);

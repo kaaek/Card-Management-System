@@ -4,6 +4,8 @@ import com.example.cms.dto.card.CardRequestDTO;
 import com.example.cms.dto.card.CardResponseDTO;
 import com.example.cms.dto.card.CardUpdateDTO;
 import com.example.cms.service.CardService;
+import com.example.cms.service.TransactionService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +17,7 @@ public class CardController {
 
     private final CardService cardService;
 
-    public CardController(CardService cardService) {
+    public CardController(CardService cardService, TransactionService transactionService) {
         this.cardService = cardService;
     }
 
