@@ -45,7 +45,7 @@ public class TransactionController {
     }
 
     @PostMapping("/credit")
-    public ResponseEntity<TransactionResponseDTO> debit (@RequestBody CreditRequestDTO request) { // TODO: add a credit method
+    public ResponseEntity<TransactionResponseDTO> debit (@RequestBody CreditRequestDTO request) {
         TransactionResponseDTO dto = transactionService.credit(request);
         return ResponseEntity.status(201).body(dto);
     }
