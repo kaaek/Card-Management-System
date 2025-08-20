@@ -6,12 +6,16 @@ import com.areeba.cms.card.dto.CardUpdateDTO;
 import com.areeba.cms.account.model.Account;
 import com.areeba.cms.accountCard.model.AccountCard;
 import com.areeba.cms.card.model.Card;
+import com.areeba.cms.card.records.CardRequestRecord;
+import com.areeba.cms.card.records.CardResponseRecord;
+import com.areeba.cms.card.records.CardUpdateRecord;
 import com.areeba.cms.enums.Status;
 import com.areeba.cms.accountCard.repository.AccountCardRepository;
 import com.areeba.cms.account.repository.AccountRepository;
 import com.areeba.cms.card.repository.CardRepository;
 import com.areeba.cms.transaction.repository.TransactionRepository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -26,10 +30,10 @@ public class CardService {
     private final AccountRepository accountRepository;
     private final AccountCardRepository accountCardRepository;
     private final TransactionRepository transactionRepository;
+    private final ObjectMapper mapper;
+//    private final ModelMapper mapper;
 
-    private final ModelMapper mapper;
-
-    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, TransactionRepository transactionRepository, ModelMapper mapper) {
+    public CardService(CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, TransactionRepository transactionRepository, ObjectMapper mapper) {
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
         this.accountCardRepository = accountCardRepository;
@@ -37,11 +41,11 @@ public class CardService {
         this.mapper = mapper;
     }
 
-    public CardResponseDTO createCard(CardRequestDTO cardRequestDTO) {
+    public CardResponseRecord createCard(CardRequestRecord request) {
 
         // Fetch accounts
-        List<Account> accounts = accountRepository.findAllById(cardRequestDTO.getAccountIds());
-        if (accounts.size() != cardRequestDTO.getAccountIds().size()) {
+        List<Account> accounts = accountRepository.findAllById(request.accountIds());
+        if (accounts.size() != request.accountIds().size()) {
             throw new EntityNotFoundException("One or more Account IDs are invalid");
         }
 
@@ -56,36 +60,36 @@ public class CardService {
             AccountCard link = new AccountCard(account, newCard);
             accountCardRepository.save(link);
         }
-        return mapper.map(newCard, CardResponseDTO.class);
+        return mapper.convertValue(newCard, CardResponseRecord.class);
     }
 
-    public CardResponseDTO getCardById(UUID id){
+    public CardResponseRecord getCardById(UUID id){
 
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
 
-        return mapper.map(card, CardResponseDTO.class);
+        return mapper.convertValue(card, CardResponseRecord.class);
     }
 
-    public List<CardResponseDTO> getAllCards() {
+    public List<CardResponseRecord> getAllCards() {
         return cardRepository.findAll()
                 .stream()
-                .map(card -> new CardResponseDTO(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber()))
+                .map(card -> new CardResponseRecord(card.getId(), card.getStatus(), card.getExpiry(), card.getCardNumber()))
                 .collect(Collectors.toList());
     }
 
-    public CardResponseDTO update(UUID id, CardUpdateDTO cardUpdateDTO){
+    public CardResponseRecord update(UUID id, CardUpdateRecord update){
 
         // Extract card if exists
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: "+ id));
 
-        card.setStatus(cardUpdateDTO.getStatus());
-        card.setExpiry(cardUpdateDTO.getExpiry());
+        card.setStatus(update.status());
+        card.setExpiry(update.expiry());
 
         cardRepository.save(card);
 
-        return mapper.map(card, CardResponseDTO.class);
+        return mapper.convertValue(card, CardResponseRecord.class);
     }
 
     public void deleteCard(UUID id) {

@@ -3,6 +3,9 @@ package com.areeba.cms.card.controller;
 import com.areeba.cms.card.dto.CardRequestDTO;
 import com.areeba.cms.card.dto.CardResponseDTO;
 import com.areeba.cms.card.dto.CardUpdateDTO;
+import com.areeba.cms.card.records.CardRequestRecord;
+import com.areeba.cms.card.records.CardResponseRecord;
+import com.areeba.cms.card.records.CardUpdateRecord;
 import com.areeba.cms.card.service.CardService;
 import com.areeba.cms.transaction.service.TransactionService;
 
@@ -22,26 +25,26 @@ public class CardController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<CardResponseDTO>> getAllCards(){
-        List<CardResponseDTO> dtos = cardService.getAllCards();
+    public ResponseEntity<List<CardResponseRecord>> getAllCards(){
+        List<CardResponseRecord> dtos = cardService.getAllCards();
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CardResponseDTO> getCardById(@PathVariable("id") UUID id){
-        CardResponseDTO dto = cardService.getCardById(id);
+    public ResponseEntity<CardResponseRecord> getCardById(@PathVariable("id") UUID id){
+        CardResponseRecord dto = cardService.getCardById(id);
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/new")
-    public ResponseEntity<CardResponseDTO> createCard(@RequestBody CardRequestDTO cardRequestDTO) {
-        CardResponseDTO dto = cardService.createCard(cardRequestDTO);
+    public ResponseEntity<CardResponseRecord> createCard(@RequestBody CardRequestRecord request) {
+        CardResponseRecord dto = cardService.createCard(request);
         return ResponseEntity.status(201).body(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CardResponseDTO> update (@PathVariable("id") UUID id, @RequestBody CardUpdateDTO cardUpdateDTO) {
-        CardResponseDTO dto = cardService.update(id, cardUpdateDTO);
+    public ResponseEntity<CardResponseRecord> update (@PathVariable("id") UUID id, @RequestBody CardUpdateRecord cardUpdateRecord) {
+        CardResponseRecord dto = cardService.update(id, cardUpdateRecord);
         return ResponseEntity.ok(dto);
     }
 
