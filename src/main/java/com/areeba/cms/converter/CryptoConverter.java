@@ -1,4 +1,4 @@
-package com.example.cms.util;
+package com.areeba.cms.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

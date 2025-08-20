@@ -1,5 +1,7 @@
 package com.areeba.cms.accountCard.model;
 
+import com.areeba.cms.account.model.Account;
+import com.areeba.cms.card.model.Card;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

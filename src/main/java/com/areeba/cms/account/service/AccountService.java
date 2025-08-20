@@ -1,24 +1,22 @@
 package com.areeba.cms.account.service;
-import com.areeba.cms.account.dto.AccountRequestDTO;
-import com.areeba.cms.account.dto.AccountResponseDTO;
-import com.areeba.cms.account.dto.AccountUpdateDTO;
+
 import com.areeba.cms.account.model.Account;
+import com.areeba.cms.account.records.AccountRequestRecord;
+import com.areeba.cms.account.records.AccountResponseRecord;
+import com.areeba.cms.account.records.AccountUpdateRecord;
 import com.areeba.cms.accountCard.model.AccountCard;
 import com.areeba.cms.card.model.Card;
-import com.areeba.cms.enums.Currency;
 import com.areeba.cms.enums.Status;
 import com.areeba.cms.accountCard.repository.AccountCardRepository;
 import com.areeba.cms.account.repository.AccountRepository;
 import com.areeba.cms.card.repository.CardRepository;
 import com.areeba.cms.transaction.repository.TransactionRepository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import org.modelmapper.ModelMapper;
-
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,55 +28,48 @@ public class AccountService {
     private final AccountCardRepository accountCardRepository;
     private final CardRepository cardRepository;
     private final TransactionRepository transactionRepository;
-    private final ModelMapper mapper;
+    private final ObjectMapper objectMapper;
 
-    public AccountService(AccountRepository accountRepository, AccountCardRepository accountCardRepository, CardRepository cardRepository, TransactionRepository transactionRepository) {
+    public AccountService(AccountRepository accountRepository, AccountCardRepository accountCardRepository, CardRepository cardRepository, TransactionRepository transactionRepository, ObjectMapper objectMapper) {
         this.accountRepository = accountRepository;
         this.accountCardRepository = accountCardRepository;
         this.cardRepository = cardRepository;
         this.transactionRepository = transactionRepository;
-        this.mapper = new ModelMapper();
+        this.objectMapper = objectMapper;
     }
 
-    public AccountResponseDTO createAccount(AccountRequestDTO accountRequestDTO){
-        // Fields
-        BigDecimal balance = accountRequestDTO.getBalance();
-        Currency currency = accountRequestDTO.getCurrency();
-
+    public AccountResponseRecord createAccount(AccountRequestRecord request) {
         // Create account object
-        Account account = new Account(Status.ACTIVE, balance, currency);
-
+        Account account = new Account(Status.ACTIVE, request.balance(), request.currency());
         // Persist
         accountRepository.save(account);
-
-        return this.mapper.map(account, AccountResponseDTO.class);
+        return objectMapper.convertValue(account, AccountResponseRecord.class);
     }
 
-    public AccountResponseDTO getAccountById(UUID id) {
+    public AccountResponseRecord getAccountById(UUID id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Account not found with ID: " + id));
-
-        return this.mapper.map(account, AccountResponseDTO.class);
+        return objectMapper.convertValue(account, AccountResponseRecord.class);
     }
 
-    public List<AccountResponseDTO> getAllAccounts() {
+    public List<AccountResponseRecord> getAllAccounts() {
         return accountRepository.findAll()
                 .stream()
-                .map(account -> new AccountResponseDTO(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency()))
+                .map(account -> new AccountResponseRecord(account.getId(), account.getStatus(), account.getBalance(), account.getCurrency()))
                 .collect(Collectors.toList());
     }
 
-    public AccountResponseDTO update(UUID id, AccountUpdateDTO accountUpdateDTO){
+    public AccountResponseRecord update(UUID id, AccountUpdateRecord update) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Account not found with ID: " + id));
-        account.setStatus(accountUpdateDTO.getStatus());
-        account.setBalance(accountUpdateDTO.getBalance());
+        account.setStatus(update.status());
+        account.setBalance(update.balance());
         accountRepository.save(account);
-        return this.mapper.map(account, AccountResponseDTO.class);
+        return objectMapper.convertValue(account, AccountResponseRecord.class);
     }
 
     @Transactional
-    public void deleteAccount(UUID id) {
+    public String deleteAccount(UUID id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Account not found with ID: " + id));
 
@@ -96,8 +87,9 @@ public class AccountService {
         }
 
         accountRepository.delete(account);
-    }
 
+        return "Accounts and orphaned cards and transactions were deleted.";
+    }
 
 
 }

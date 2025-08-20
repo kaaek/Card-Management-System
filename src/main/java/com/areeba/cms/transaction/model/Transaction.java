@@ -1,5 +1,6 @@
 package com.areeba.cms.transaction.model;
 
+import com.areeba.cms.card.model.Card;
 import com.areeba.cms.enums.Currency;
 import com.areeba.cms.enums.TransactionType;
 import jakarta.persistence.*;

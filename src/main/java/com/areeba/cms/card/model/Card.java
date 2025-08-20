@@ -1,6 +1,6 @@
 package com.areeba.cms.card.model;
 
-import com.example.cms.util.CryptoConverter;
+import com.areeba.cms.converter.CryptoConverter;
 import com.areeba.cms.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
