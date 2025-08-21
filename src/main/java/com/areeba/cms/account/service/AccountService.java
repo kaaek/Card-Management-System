@@ -1,9 +1,9 @@
 package com.areeba.cms.account.service;
 
 import com.areeba.cms.account.model.Account;
-import com.areeba.cms.account.records.AccountRequestRecord;
-import com.areeba.cms.account.records.AccountResponseRecord;
-import com.areeba.cms.account.records.AccountUpdateRecord;
+import com.areeba.cms.account.record.AccountRequestRecord;
+import com.areeba.cms.account.record.AccountResponseRecord;
+import com.areeba.cms.account.record.AccountUpdateRecord;
 import com.areeba.cms.accountCard.model.AccountCard;
 import com.areeba.cms.card.model.Card;
 import com.areeba.cms.enums.Status;

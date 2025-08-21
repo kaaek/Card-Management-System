@@ -1,11 +1,8 @@
 package com.areeba.cms.card.controller;
 
-import com.areeba.cms.card.dto.CardRequestDTO;
-import com.areeba.cms.card.dto.CardResponseDTO;
-import com.areeba.cms.card.dto.CardUpdateDTO;
-import com.areeba.cms.card.records.CardRequestRecord;
-import com.areeba.cms.card.records.CardResponseRecord;
-import com.areeba.cms.card.records.CardUpdateRecord;
+import com.areeba.cms.card.record.CardRequestRecord;
+import com.areeba.cms.card.record.CardResponseRecord;
+import com.areeba.cms.card.record.CardUpdateRecord;
 import com.areeba.cms.card.service.CardService;
 import com.areeba.cms.transaction.service.TransactionService;
 

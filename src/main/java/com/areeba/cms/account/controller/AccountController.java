@@ -1,11 +1,8 @@
 package com.areeba.cms.account.controller;
 
-import com.areeba.cms.account.dto.AccountRequestDTO;
-import com.areeba.cms.account.dto.AccountResponseDTO;
-import com.areeba.cms.account.dto.AccountUpdateDTO;
-import com.areeba.cms.account.records.AccountRequestRecord;
-import com.areeba.cms.account.records.AccountResponseRecord;
-import com.areeba.cms.account.records.AccountUpdateRecord;
+import com.areeba.cms.account.record.AccountRequestRecord;
+import com.areeba.cms.account.record.AccountResponseRecord;
+import com.areeba.cms.account.record.AccountUpdateRecord;
 import com.areeba.cms.account.service.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

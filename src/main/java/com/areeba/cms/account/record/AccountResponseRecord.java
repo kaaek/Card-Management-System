@@ -1,4 +1,4 @@
-package com.areeba.cms.account.records;
+package com.areeba.cms.account.record;
 
 import com.areeba.cms.enums.Currency;
 import com.areeba.cms.enums.Status;

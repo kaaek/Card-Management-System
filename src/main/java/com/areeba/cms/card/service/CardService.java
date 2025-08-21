@@ -1,14 +1,11 @@
 package com.areeba.cms.card.service;
 
-import com.areeba.cms.card.dto.CardRequestDTO;
-import com.areeba.cms.card.dto.CardResponseDTO;
-import com.areeba.cms.card.dto.CardUpdateDTO;
 import com.areeba.cms.account.model.Account;
 import com.areeba.cms.accountCard.model.AccountCard;
 import com.areeba.cms.card.model.Card;
-import com.areeba.cms.card.records.CardRequestRecord;
-import com.areeba.cms.card.records.CardResponseRecord;
-import com.areeba.cms.card.records.CardUpdateRecord;
+import com.areeba.cms.card.record.CardRequestRecord;
+import com.areeba.cms.card.record.CardResponseRecord;
+import com.areeba.cms.card.record.CardUpdateRecord;
 import com.areeba.cms.enums.Status;
 import com.areeba.cms.accountCard.repository.AccountCardRepository;
 import com.areeba.cms.account.repository.AccountRepository;
@@ -17,7 +14,6 @@ import com.areeba.cms.transaction.repository.TransactionRepository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

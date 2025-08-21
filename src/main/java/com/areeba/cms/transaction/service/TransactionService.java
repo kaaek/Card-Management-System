@@ -1,9 +1,6 @@
 package com.areeba.cms.transaction.service;
-import com.areeba.cms.credit.dto.CreditRequestDTO;
-import com.areeba.cms.debit.dto.DebitRequestDTO;
-import com.areeba.cms.transaction.dto.TransactionRequestDTO;
-import com.areeba.cms.transaction.dto.TransactionResponseDTO;
-import com.areeba.cms.transaction.dto.TransactionUpdateDTO;
+import com.areeba.cms.credit.record.CreditRequestRecord;
+import com.areeba.cms.debit.record.DebitRequestRecord;
 import com.areeba.cms.account.model.Account;
 import com.areeba.cms.accountCard.model.AccountCard;
 import com.areeba.cms.card.model.Card;
@@ -13,9 +10,12 @@ import com.areeba.cms.enums.TransactionType;
 import com.areeba.cms.accountCard.repository.AccountCardRepository;
 import com.areeba.cms.account.repository.AccountRepository;
 import com.areeba.cms.card.repository.CardRepository;
+import com.areeba.cms.transaction.record.TransactionRequestRecord;
+import com.areeba.cms.transaction.record.TransactionResponseRecord;
+import com.areeba.cms.transaction.record.TransactionUpdateRecord;
 import com.areeba.cms.transaction.repository.TransactionRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -30,9 +30,9 @@ public class TransactionService {
     private final CardRepository cardRepository;
     private final AccountCardRepository accountCardRepository;
     private final TransactionRepository transactionRepository;
-    private final ModelMapper mapper;
+    private final ObjectMapper mapper;
 
-    public TransactionService(TransactionRepository transactionRepository, CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, ModelMapper mapper){
+    public TransactionService(TransactionRepository transactionRepository, CardRepository cardRepository, AccountRepository accountRepository, AccountCardRepository accountCardRepository, ObjectMapper mapper){
         this.transactionRepository = transactionRepository;
         this.cardRepository = cardRepository;
         this.accountRepository = accountRepository;
@@ -40,14 +40,14 @@ public class TransactionService {
         this.mapper = mapper;
     }
 
-    public TransactionResponseDTO createTransaction(TransactionRequestDTO transactionRequestDTO){
+    public TransactionResponseRecord createTransaction(TransactionRequestRecord request){
         // Fetch cards
-        String cardNumber = transactionRequestDTO.getCardNumber();
+        String cardNumber = request.cardNumber();
         Card card = cardRepository.findByCardNumber(cardNumber)
             .orElseThrow(() -> new EntityNotFoundException("Card with number: " + cardNumber + " was not found."));
 
         // Prepare to create a transaction object, need the parameters amount, date, type, currency, and card id.
-        BigDecimal amount = transactionRequestDTO.getAmount();
+        BigDecimal amount = request.amount();
 
         // Check if transaction amount is positive.
         if(amount.compareTo(BigDecimal.valueOf(0)) <= 0){
@@ -55,8 +55,8 @@ public class TransactionService {
         }
 
         Timestamp date = createTimestamp();
-        TransactionType type = transactionRequestDTO.getType();
-        Currency currency = transactionRequestDTO.getCurrency();
+        TransactionType type = request.type();
+        Currency currency = request.currency();
 
         // Check eligibility (if we can create this transaction or not)
         Account account = getAccountFromCard(card, currency);
@@ -72,14 +72,14 @@ public class TransactionService {
         // Persist
         transactionRepository.save(transaction);
 
-        return mapper.map(transaction, TransactionResponseDTO.class);
+        return mapper.convertValue(transaction, TransactionResponseRecord.class);
     }
 
-    public TransactionResponseDTO debit (DebitRequestDTO request) {
+    public TransactionResponseRecord debit (DebitRequestRecord request) {
         // DTO fields:
-        String cardNumber = request.getCardNumber();
-        BigDecimal amount = request.getAmount();
-        Currency currency = request.getCurrency();
+        String cardNumber = request.cardNumber();
+        BigDecimal amount = request.amount();
+        Currency currency = request.currency();
 
         Card card = cardRepository.findByCardNumber(cardNumber)
             .orElseThrow(() -> new IllegalArgumentException("Card with number: "+cardNumber+" not found in db."));
@@ -106,14 +106,14 @@ public class TransactionService {
         // Persist
         transactionRepository.save(transaction);
 
-        return mapper.map(transaction, TransactionResponseDTO.class);
+        return mapper.convertValue(transaction, TransactionResponseRecord.class);
     }
 
-    public TransactionResponseDTO credit (CreditRequestDTO request) {
+    public TransactionResponseRecord credit (CreditRequestRecord request) {
         // DTO Fields:
-        String cardNumber = request.getCardNumber();
-        BigDecimal amount = request.getAmount();
-        Currency currency = request.getCurrency();
+        String cardNumber = request.cardNumber();
+        BigDecimal amount = request.amount();
+        Currency currency = request.currency();
 
         Card card = cardRepository.findByCardNumber(cardNumber)
             .orElseThrow(() -> new IllegalArgumentException("Card with number: "+cardNumber+" not found in db."));
@@ -135,23 +135,23 @@ public class TransactionService {
         // Persist
         transactionRepository.save(transaction);
 
-        return mapper.map(transaction, TransactionResponseDTO.class);
+        return mapper.convertValue(transaction, TransactionResponseRecord.class);
     }
 
-    public List<TransactionResponseDTO> getAllTransactions(){
+    public List<TransactionResponseRecord> getAllTransactions(){
         return transactionRepository.findAll()
                 .stream()
-                .map(transaction -> new TransactionResponseDTO(transaction.getId(), transaction.getAmount(), transaction.getDate(), transaction.getType(), transaction.getCurrency(), transaction.getCard().getId()))
+                .map(transaction -> new TransactionResponseRecord(transaction.getId(), transaction.getAmount(), transaction.getDate(), transaction.getType(), transaction.getCurrency(), transaction.getCard().getId()))
                 .collect(Collectors.toList());
     }
 
-    public TransactionResponseDTO getTransactionById(UUID id){
+    public TransactionResponseRecord getTransactionById(UUID id){
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found with ID: " + id));
-        return mapper.map(transaction, TransactionResponseDTO.class);
+        return mapper.convertValue(transaction, TransactionResponseRecord.class);
     }
 
-    public TransactionResponseDTO update(UUID id, TransactionUpdateDTO transactionUpdateDTO){
+    public TransactionResponseRecord update(UUID id, TransactionUpdateRecord update){
 
         // Fetch Transaction
         Transaction transaction = transactionRepository.findById(id)
@@ -164,9 +164,9 @@ public class TransactionService {
         Currency oldCurrency = transaction.getCurrency();
 
         // New fields
-        BigDecimal newAmount = transactionUpdateDTO.getAmount();
-        Timestamp newDate = transactionUpdateDTO.getDate();
-        TransactionType newType = transactionUpdateDTO.getType();
+        BigDecimal newAmount = update.amount();
+        Timestamp newDate = update.date();
+        TransactionType newType = update.type();
 
         Card card = transaction.getCard();
         Account account = getAccountFromCard(card, oldCurrency);
@@ -197,12 +197,12 @@ public class TransactionService {
         transaction.setType(newType);
         transactionRepository.save(transaction);
 
-        return mapper.map(transaction, TransactionResponseDTO.class);
+        return mapper.convertValue(transaction, TransactionResponseRecord.class);
     }
 
 
     // Helper methods
-    public void deleteTransaction(UUID id){
+    public String deleteTransaction(UUID id){
         // Fetch Transaction
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found with ID: " + id));
@@ -222,6 +222,8 @@ public class TransactionService {
         }
         transactionRepository.delete(transaction);
         accountRepository.save(account);
+
+        return "Transaction with ID: " + id + " was deleted.";
     }
 
     public Account getAccountFromCard(Card card, Currency currency) {

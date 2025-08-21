@@ -1,4 +1,4 @@
-package com.areeba.cms.card.records;
+package com.areeba.cms.card.record;
 
 import com.areeba.cms.enums.Status;
 
